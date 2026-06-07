@@ -289,7 +289,7 @@
 
 
 # updated code
-from flask import Flask, request, jsonify, send_from_directory, session
+from flask import Flask, request, jsonify, session
 from flask_cors import CORS
 from datetime import datetime, timedelta
 import sqlite3
@@ -298,9 +298,19 @@ import os
 import hashlib
 from functools import wraps
 
-app = Flask(__name__, static_folder='.')
+app = Flask(__name__)
 app.secret_key = 'tailorease-super-secret-key-change-this'
-CORS(app, supports_credentials=True)
+
+# Configure CORS properly for Netlify
+CORS(app, 
+     origins=[
+         "https://relaxed-dodol-6a31b9.netlify.app",
+         "http://localhost:5000",
+         "http://localhost:5500"
+     ], 
+     supports_credentials=True,
+     allow_headers=["Content-Type", "Authorization"],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
 DATABASE = 'tailorease.db'
 
@@ -322,7 +332,7 @@ def init_db():
         )
     ''')
     
-    # Bookings table - CORRECTED with user_id column
+    # Bookings table with user_id column
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS bookings (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -423,12 +433,44 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-@app.route('/')
-def serve_index():
-    return send_from_directory('.', 'index.html')
+# ============ ROOT ROUTE ============
 
-@app.route('/api/auth/login', methods=['POST'])
+@app.route('/', methods=['GET'])
+def home():
+    return jsonify({
+        'message': 'TailorEase API is running!',
+        'status': 'active',
+        'version': '1.0.0',
+        'endpoints': {
+            'health': 'GET /api/health',
+            'login': 'POST /api/auth/login',
+            'register': 'POST /api/auth/register',
+            'logout': 'POST /api/auth/logout',
+            'me': 'GET /api/auth/me',
+            'create_booking': 'POST /api/bookings',
+            'my_bookings': 'GET /api/bookings/user',
+            'track_order': 'GET /api/bookings/<order_id>',
+            'admin_bookings': 'GET /api/admin/bookings',
+            'update_status': 'PUT /api/admin/bookings/<order_id>/status',
+            'contact': 'POST /api/contact',
+            'stats': 'GET /api/stats'
+        }
+    })
+
+# ============ HEALTH ROUTE ============
+
+@app.route('/api/health', methods=['GET', 'OPTIONS'])
+def health_check():
+    if request.method == 'OPTIONS':
+        return '', 200
+    return jsonify({'status': 'ok', 'message': 'TailorEase API is running', 'database': 'SQLite'}), 200
+
+# ============ AUTH ROUTES ============
+
+@app.route('/api/auth/login', methods=['POST', 'OPTIONS'])
 def login():
+    if request.method == 'OPTIONS':
+        return '', 200
     try:
         data = request.json
         username = data.get('username')
@@ -465,8 +507,10 @@ def login():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/auth/register', methods=['POST'])
+@app.route('/api/auth/register', methods=['POST', 'OPTIONS'])
 def register():
+    if request.method == 'OPTIONS':
+        return '', 200
     try:
         data = request.json
         username = data.get('username')
@@ -496,27 +540,38 @@ def register():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/auth/logout', methods=['POST'])
+@app.route('/api/auth/logout', methods=['POST', 'OPTIONS'])
 def logout():
+    if request.method == 'OPTIONS':
+        return '', 200
     session.clear()
     return jsonify({'success': True, 'message': 'Logged out successfully'}), 200
 
-@app.route('/api/auth/me', methods=['GET'])
-@login_required
+@app.route('/api/auth/me', methods=['GET', 'OPTIONS'])
 def get_current_user():
-    return jsonify({
-        'success': True,
-        'user': {
-            'id': session['user_id'],
-            'username': session['username'],
-            'full_name': session.get('full_name', ''),
-            'role': session['role']
-        }
-    }), 200
+    if request.method == 'OPTIONS':
+        return '', 200
+    if 'user_id' in session:
+        return jsonify({
+            'success': True,
+            'user': {
+                'id': session['user_id'],
+                'username': session['username'],
+                'full_name': session.get('full_name', ''),
+                'role': session['role']
+            }
+        }), 200
+    return jsonify({'success': False, 'error': 'Not logged in'}), 401
 
-@app.route('/api/bookings', methods=['POST'])
-@login_required
+# ============ BOOKING ROUTES ============
+
+@app.route('/api/bookings', methods=['POST', 'OPTIONS'])
 def create_booking():
+    if request.method == 'OPTIONS':
+        return '', 200
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Please login first'}), 401
+    
     try:
         data = request.json
         order_id = f"TE-{datetime.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
@@ -556,9 +611,13 @@ def create_booking():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/bookings/user', methods=['GET'])
-@login_required
+@app.route('/api/bookings/user', methods=['GET', 'OPTIONS'])
 def get_user_bookings():
+    if request.method == 'OPTIONS':
+        return '', 200
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Please login first'}), 401
+    
     try:
         conn = get_db()
         cursor = conn.cursor()
@@ -569,14 +628,18 @@ def get_user_bookings():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/bookings/<order_id>', methods=['GET'])
-@login_required
+@app.route('/api/bookings/<order_id>', methods=['GET', 'OPTIONS'])
 def get_booking(order_id):
+    if request.method == 'OPTIONS':
+        return '', 200
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Please login first'}), 401
+    
     try:
         conn = get_db()
         cursor = conn.cursor()
         
-        if session['role'] == 'admin':
+        if session.get('role') == 'admin':
             cursor.execute('SELECT * FROM bookings WHERE order_id = ?', (order_id,))
         else:
             cursor.execute('SELECT * FROM bookings WHERE order_id = ? AND user_id = ?', (order_id, session['user_id']))
@@ -610,9 +673,15 @@ def get_booking(order_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/admin/bookings', methods=['GET'])
-@admin_required
+# ============ ADMIN ROUTES ============
+
+@app.route('/api/admin/bookings', methods=['GET', 'OPTIONS'])
 def admin_get_all_bookings():
+    if request.method == 'OPTIONS':
+        return '', 200
+    if 'user_id' not in session or session.get('role') != 'admin':
+        return jsonify({'success': False, 'error': 'Admin access required'}), 403
+    
     try:
         conn = get_db()
         cursor = conn.cursor()
@@ -623,9 +692,13 @@ def admin_get_all_bookings():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/admin/bookings/<order_id>/status', methods=['PUT'])
-@admin_required
+@app.route('/api/admin/bookings/<order_id>/status', methods=['PUT', 'OPTIONS'])
 def admin_update_status(order_id):
+    if request.method == 'OPTIONS':
+        return '', 200
+    if 'user_id' not in session or session.get('role') != 'admin':
+        return jsonify({'success': False, 'error': 'Admin access required'}), 403
+    
     try:
         data = request.json
         new_status = data.get('status')
@@ -653,8 +726,12 @@ def admin_update_status(order_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/contact', methods=['POST'])
+# ============ OTHER ROUTES ============
+
+@app.route('/api/contact', methods=['POST', 'OPTIONS'])
 def submit_contact():
+    if request.method == 'OPTIONS':
+        return '', 200
     try:
         data = request.json
         conn = get_db()
@@ -665,19 +742,31 @@ def submit_contact():
         ''', (data['name'], data.get('phone', ''), data.get('email', ''), data['message']))
         conn.commit()
         conn.close()
-        return jsonify({'success': True, 'message': 'Message sent'}), 201
+        return jsonify({'success': True, 'message': 'Message sent successfully'}), 201
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/stats', methods=['GET'])
+@app.route('/api/stats', methods=['GET', 'OPTIONS'])
 def get_stats():
+    if request.method == 'OPTIONS':
+        return '', 200
     try:
         conn = get_db()
         cursor = conn.cursor()
         cursor.execute('SELECT COUNT(*) FROM bookings')
         total = cursor.fetchone()[0]
+        
+        thirty_days_ago = (datetime.now() - timedelta(days=30)).isoformat()
+        cursor.execute('SELECT COUNT(*) FROM bookings WHERE created_at >= ?', (thirty_days_ago,))
+        recent = cursor.fetchone()[0]
+        
         conn.close()
-        return jsonify({'success': True, 'total_bookings': total, 'base_customers': 2400 + total}), 200
+        return jsonify({
+            'success': True, 
+            'total_bookings': total, 
+            'recent_bookings': recent,
+            'base_customers': 2400 + total
+        }), 200
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
