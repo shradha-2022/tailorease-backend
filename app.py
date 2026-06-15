@@ -1,305 +1,18 @@
-# from flask import Flask, request, jsonify, send_from_directory
-# from flask_cors import CORS
-# from datetime import datetime, timedelta
-# import sqlite3
-# import uuid
-# import os
-# import json
-
-# app = Flask(__name__, static_folder='.')
-# CORS(app)
-
-# # Database file
-# DATABASE = 'tailorease.db'
-
-# def init_db():
-#     """Initialize SQLite database with all tables"""
-#     conn = sqlite3.connect(DATABASE)
-#     cursor = conn.cursor()
-    
-#     # Create bookings table
-#     cursor.execute('''
-#         CREATE TABLE IF NOT EXISTS bookings (
-#             id INTEGER PRIMARY KEY AUTOINCREMENT,
-#             order_id TEXT UNIQUE NOT NULL,
-#             customer_name TEXT NOT NULL,
-#             phone TEXT NOT NULL,
-#             email TEXT,
-#             city TEXT NOT NULL,
-#             address TEXT NOT NULL,
-#             garment_type TEXT NOT NULL,
-#             service_type TEXT NOT NULL,
-#             preferred_date TEXT NOT NULL,
-#             time_slot TEXT NOT NULL,
-#             special_instructions TEXT,
-#             payment_method TEXT DEFAULT 'UPI / Online',
-#             status TEXT DEFAULT 'Booking Confirmed',
-#             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-#             updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-#         )
-#     ''')
-    
-#     # Create order_status table
-#     cursor.execute('''
-#         CREATE TABLE IF NOT EXISTS order_status (
-#             id INTEGER PRIMARY KEY AUTOINCREMENT,
-#             order_id TEXT NOT NULL,
-#             status_label TEXT NOT NULL,
-#             status_time TEXT,
-#             is_completed INTEGER DEFAULT 0,
-#             FOREIGN KEY (order_id) REFERENCES bookings (order_id) ON DELETE CASCADE
-#         )
-#     ''')
-    
-#     # Create contact_messages table
-#     cursor.execute('''
-#         CREATE TABLE IF NOT EXISTS contact_messages (
-#             id INTEGER PRIMARY KEY AUTOINCREMENT,
-#             name TEXT NOT NULL,
-#             phone TEXT,
-#             email TEXT,
-#             message TEXT NOT NULL,
-#             created_at TEXT DEFAULT CURRENT_TIMESTAMP
-#         )
-#     ''')
-    
-#     conn.commit()
-    
-#     # Check if we need to add sample data
-#     cursor.execute('SELECT COUNT(*) FROM bookings')
-#     count = cursor.fetchone()[0]
-    
-#     if count == 0:
-#         # Add sample booking
-#         sample_order_id = f"TE-{datetime.now().strftime('%Y%m%d')}-SAMP"
-#         cursor.execute('''
-#             INSERT INTO bookings (order_id, customer_name, phone, city, address, garment_type, service_type, preferred_date, time_slot, status)
-#             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-#         ''', (sample_order_id, 'Sample Customer', '9999999999', 'Bangalore', 'Sample Address', 'Blouse', 'Both', 
-#               datetime.now().strftime('%Y-%m-%d'), '10:00 AM', 'Stitching in Progress'))
-        
-#         # Add statuses for sample
-#         statuses = ['Booking Confirmed', 'Tailor Assigned', 'Measurements Taken', 'Fabric Picked Up', 
-#                    'Stitching in Progress', 'Quality Check', 'Ready for Delivery', 'Out for Delivery', 'Delivered']
-        
-#         for i, status in enumerate(statuses):
-#             is_done = i < 4  # First 4 are done
-#             status_time = (datetime.now() - timedelta(days=5-i)).isoformat() if is_done else None
-#             cursor.execute('''
-#                 INSERT INTO order_status (order_id, status_label, status_time, is_completed)
-#                 VALUES (?, ?, ?, ?)
-#             ''', (sample_order_id, status, status_time, 1 if is_done else 0))
-        
-#         conn.commit()
-#         print(f"✅ Added sample order: {sample_order_id}")
-    
-#     conn.close()
-#     print("✅ Database initialized successfully!")
-
-# def get_db():
-#     conn = sqlite3.connect(DATABASE)
-#     conn.row_factory = sqlite3.Row
-#     return conn
-
-# @app.route('/')
-# def serve_index():
-#     return send_from_directory('.', 'index.html')
-
-# @app.route('/api/health', methods=['GET'])
-# def health_check():
-#     return jsonify({'status': 'ok', 'message': 'TailorEase API is running', 'database': 'SQLite'}), 200
-
-# @app.route('/api/bookings', methods=['POST'])
-# def create_booking():
-#     try:
-#         data = request.json
-        
-#         # Generate unique order ID
-#         order_id = f"TE-{datetime.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
-        
-#         conn = get_db()
-#         cursor = conn.cursor()
-        
-#         # Insert booking
-#         cursor.execute('''
-#             INSERT INTO bookings (
-#                 order_id, customer_name, phone, email, city, address, 
-#                 garment_type, service_type, preferred_date, time_slot, 
-#                 special_instructions, payment_method, status
-#             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-#         ''', (
-#             order_id, 
-#             data.get('customer_name'), 
-#             data.get('phone'), 
-#             data.get('email', ''),
-#             data.get('city'), 
-#             data.get('address'), 
-#             data.get('garment_type'), 
-#             data.get('service_type'),
-#             data.get('preferred_date'), 
-#             data.get('time_slot'), 
-#             data.get('special_instructions', ''),
-#             data.get('payment_method', 'UPI / Online'), 
-#             'Booking Confirmed'
-#         ))
-        
-#         # Add all statuses
-#         statuses = ['Booking Confirmed', 'Tailor Assigned', 'Measurements Taken', 'Fabric Picked Up', 
-#                    'Stitching in Progress', 'Quality Check', 'Ready for Delivery', 'Out for Delivery', 'Delivered']
-        
-#         for i, status in enumerate(statuses):
-#             is_done = 1 if i == 0 else 0  # Only first status is done
-#             status_time = datetime.now().isoformat() if i == 0 else None
-#             cursor.execute('''
-#                 INSERT INTO order_status (order_id, status_label, status_time, is_completed)
-#                 VALUES (?, ?, ?, ?)
-#             ''', (order_id, status, status_time, is_done))
-        
-#         conn.commit()
-#         conn.close()
-        
-#         return jsonify({
-#             'success': True,
-#             'order_id': order_id,
-#             'message': 'Booking created successfully'
-#         }), 201
-        
-#     except Exception as e:
-#         return jsonify({'success': False, 'error': str(e)}), 500
-
-# @app.route('/api/bookings/<order_id>', methods=['GET'])
-# def get_booking(order_id):
-#     try:
-#         conn = get_db()
-#         cursor = conn.cursor()
-        
-#         # Get booking
-#         cursor.execute('SELECT * FROM bookings WHERE order_id = ?', (order_id,))
-#         booking = cursor.fetchone()
-        
-#         if not booking:
-#             conn.close()
-#             return jsonify({'success': False, 'error': 'Order not found'}), 404
-        
-#         # Get status updates
-#         cursor.execute('''
-#             SELECT * FROM order_status 
-#             WHERE order_id = ? 
-#             ORDER BY id
-#         ''', (order_id,))
-#         statuses = cursor.fetchall()
-        
-#         timeline = []
-#         active_found = False
-#         for status in statuses:
-#             is_done = bool(status['is_completed'])
-#             is_active = False
-#             if not is_done and not active_found:
-#                 is_active = True
-#                 active_found = True
-            
-#             timeline.append({
-#                 'label': status['status_label'],
-#                 'time': status['status_time'],
-#                 'done': is_done,
-#                 'active': is_active
-#             })
-        
-#         conn.close()
-        
-#         booking_dict = dict(booking)
-        
-#         return jsonify({
-#             'success': True,
-#             'order': booking_dict,
-#             'timeline': timeline
-#         }), 200
-        
-#     except Exception as e:
-#         return jsonify({'success': False, 'error': str(e)}), 500
-
-# @app.route('/api/contact', methods=['POST'])
-# def submit_contact():
-#     try:
-#         data = request.json
-        
-#         conn = get_db()
-#         cursor = conn.cursor()
-        
-#         cursor.execute('''
-#             INSERT INTO contact_messages (name, phone, email, message)
-#             VALUES (?, ?, ?, ?)
-#         ''', (data['name'], data.get('phone', ''), data.get('email', ''), data['message']))
-        
-#         conn.commit()
-#         conn.close()
-        
-#         return jsonify({'success': True, 'message': 'Message sent successfully'}), 201
-        
-#     except Exception as e:
-#         return jsonify({'success': False, 'error': str(e)}), 500
-
-# @app.route('/api/stats', methods=['GET'])
-# def get_stats():
-#     try:
-#         conn = get_db()
-#         cursor = conn.cursor()
-        
-#         cursor.execute('SELECT COUNT(*) FROM bookings')
-#         total = cursor.fetchone()[0]
-        
-#         thirty_days_ago = (datetime.now() - timedelta(days=30)).isoformat()
-#         cursor.execute('''
-#             SELECT COUNT(*) FROM bookings 
-#             WHERE created_at >= ?
-#         ''', (thirty_days_ago,))
-#         recent = cursor.fetchone()[0]
-        
-#         conn.close()
-        
-#         return jsonify({
-#             'success': True,
-#             'total_bookings': total,
-#             'recent_bookings': recent,
-#             'base_customers': 2400 + total
-#         }), 200
-        
-#     except Exception as e:
-#         return jsonify({'success': False, 'error': str(e)}), 500
-
-# if __name__ == '__main__':
-#     init_db()
-#     print("\n" + "="*60)
-#     print("🚀 TAILOREASE BACKEND SERVER")
-#     print("="*60)
-#     print(f"📁 Database: {os.path.abspath(DATABASE)}")
-#     print(f"🌐 Server: http://localhost:5000")
-#     print("\n📋 API Endpoints:")
-#     print("   POST   http://localhost:5000/api/bookings  - Create booking")
-#     print("   GET    http://localhost:5000/api/bookings/<id> - Track order")
-#     print("   POST   http://localhost:5000/api/contact   - Send message")
-#     print("   GET    http://localhost:5000/api/stats     - Get statistics")
-#     print("\n💡 Sample Order ID to track: Check the console after creating a booking")
-#     print("="*60 + "\n")
-    
-#     app.run(debug=True, port=5000)
-
-
-
-
-
-# updated code
-from flask import Flask, request, jsonify, session
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from datetime import datetime, timedelta
 import sqlite3
 import uuid
 import os
 import hashlib
+import jwt
 from functools import wraps
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'tailorease-super-secret-key-change-this'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'tailorease-secret-key-change-this')
 
 # Configure CORS properly for Netlify
 CORS(app, 
@@ -312,7 +25,8 @@ CORS(app,
      allow_headers=["Content-Type", "Authorization"],
      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
-DATABASE = 'tailorease.db'
+# Use /tmp/ for SQLite on Render (ephemeral but works)
+DATABASE = '/tmp/tailorease.db'
 
 def init_db():
     """Initialize database with correct schema"""
@@ -417,21 +131,27 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
-def login_required(f):
+def token_required(f):
     @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            return jsonify({'success': False, 'error': 'Please login first'}), 401
-        return f(*args, **kwargs)
-    return decorated_function
-
-def admin_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session or session.get('role') != 'admin':
-            return jsonify({'success': False, 'error': 'Admin access required'}), 403
-        return f(*args, **kwargs)
-    return decorated_function
+    def decorated(*args, **kwargs):
+        token = request.headers.get('Authorization')
+        
+        if not token:
+            return jsonify({'success': False, 'error': 'Token is missing'}), 401
+        
+        try:
+            # Remove 'Bearer ' prefix if present
+            if token.startswith('Bearer '):
+                token = token[7:]
+            
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+            current_user = data['user']
+        except:
+            return jsonify({'success': False, 'error': 'Token is invalid'}), 401
+        
+        return f(current_user, *args, **kwargs)
+    
+    return decorated
 
 # ============ ROOT ROUTE ============
 
@@ -444,16 +164,7 @@ def home():
         'endpoints': {
             'health': 'GET /api/health',
             'login': 'POST /api/auth/login',
-            'register': 'POST /api/auth/register',
-            'logout': 'POST /api/auth/logout',
-            'me': 'GET /api/auth/me',
-            'create_booking': 'POST /api/bookings',
-            'my_bookings': 'GET /api/bookings/user',
-            'track_order': 'GET /api/bookings/<order_id>',
-            'admin_bookings': 'GET /api/admin/bookings',
-            'update_status': 'PUT /api/admin/bookings/<order_id>/status',
-            'contact': 'POST /api/contact',
-            'stats': 'GET /api/stats'
+            'register': 'POST /api/auth/register'
         }
     })
 
@@ -488,13 +199,20 @@ def login():
         conn.close()
         
         if user:
-            session['user_id'] = user['id']
-            session['username'] = user['username']
-            session['role'] = user['role']
-            session['full_name'] = user['full_name']
+            # Generate JWT token instead of session
+            token = jwt.encode({
+                'user': {
+                    'id': user['id'],
+                    'username': user['username'],
+                    'full_name': user['full_name'],
+                    'role': user['role']
+                },
+                'exp': datetime.utcnow() + timedelta(days=1)
+            }, app.config['SECRET_KEY'], algorithm='HS256')
             
             return jsonify({
                 'success': True,
+                'token': token,
                 'user': {
                     'id': user['id'],
                     'username': user['username'],
@@ -540,37 +258,23 @@ def register():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/auth/logout', methods=['POST', 'OPTIONS'])
-def logout():
-    if request.method == 'OPTIONS':
-        return '', 200
-    session.clear()
-    return jsonify({'success': True, 'message': 'Logged out successfully'}), 200
-
 @app.route('/api/auth/me', methods=['GET', 'OPTIONS'])
-def get_current_user():
+@token_required
+def get_current_user(current_user):
     if request.method == 'OPTIONS':
         return '', 200
-    if 'user_id' in session:
-        return jsonify({
-            'success': True,
-            'user': {
-                'id': session['user_id'],
-                'username': session['username'],
-                'full_name': session.get('full_name', ''),
-                'role': session['role']
-            }
-        }), 200
-    return jsonify({'success': False, 'error': 'Not logged in'}), 401
+    return jsonify({
+        'success': True,
+        'user': current_user
+    }), 200
 
 # ============ BOOKING ROUTES ============
 
 @app.route('/api/bookings', methods=['POST', 'OPTIONS'])
-def create_booking():
+@token_required
+def create_booking(current_user):
     if request.method == 'OPTIONS':
         return '', 200
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Please login first'}), 401
     
     try:
         data = request.json
@@ -586,7 +290,7 @@ def create_booking():
                 special_instructions, payment_method, status
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
-            order_id, session['user_id'], data.get('customer_name'), data.get('phone'), 
+            order_id, current_user['id'], data.get('customer_name'), data.get('phone'), 
             data.get('email', ''), data.get('city'), data.get('address'), 
             data.get('garment_type'), data.get('service_type'), data.get('preferred_date'), 
             data.get('time_slot'), data.get('special_instructions', ''),
@@ -612,16 +316,15 @@ def create_booking():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/bookings/user', methods=['GET', 'OPTIONS'])
-def get_user_bookings():
+@token_required
+def get_user_bookings(current_user):
     if request.method == 'OPTIONS':
         return '', 200
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Please login first'}), 401
     
     try:
         conn = get_db()
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM bookings WHERE user_id = ? ORDER BY created_at DESC', (session['user_id'],))
+        cursor.execute('SELECT * FROM bookings WHERE user_id = ? ORDER BY created_at DESC', (current_user['id'],))
         bookings = cursor.fetchall()
         conn.close()
         return jsonify({'success': True, 'bookings': [dict(b) for b in bookings]}), 200
@@ -629,20 +332,19 @@ def get_user_bookings():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/bookings/<order_id>', methods=['GET', 'OPTIONS'])
-def get_booking(order_id):
+@token_required
+def get_booking(current_user, order_id):
     if request.method == 'OPTIONS':
         return '', 200
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Please login first'}), 401
     
     try:
         conn = get_db()
         cursor = conn.cursor()
         
-        if session.get('role') == 'admin':
+        if current_user.get('role') == 'admin':
             cursor.execute('SELECT * FROM bookings WHERE order_id = ?', (order_id,))
         else:
-            cursor.execute('SELECT * FROM bookings WHERE order_id = ? AND user_id = ?', (order_id, session['user_id']))
+            cursor.execute('SELECT * FROM bookings WHERE order_id = ? AND user_id = ?', (order_id, current_user['id']))
         
         booking = cursor.fetchone()
         if not booking:
@@ -676,10 +378,11 @@ def get_booking(order_id):
 # ============ ADMIN ROUTES ============
 
 @app.route('/api/admin/bookings', methods=['GET', 'OPTIONS'])
-def admin_get_all_bookings():
+@token_required
+def admin_get_all_bookings(current_user):
     if request.method == 'OPTIONS':
         return '', 200
-    if 'user_id' not in session or session.get('role') != 'admin':
+    if current_user.get('role') != 'admin':
         return jsonify({'success': False, 'error': 'Admin access required'}), 403
     
     try:
@@ -693,10 +396,11 @@ def admin_get_all_bookings():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/admin/bookings/<order_id>/status', methods=['PUT', 'OPTIONS'])
-def admin_update_status(order_id):
+@token_required
+def admin_update_status(current_user, order_id):
     if request.method == 'OPTIONS':
         return '', 200
-    if 'user_id' not in session or session.get('role') != 'admin':
+    if current_user.get('role') != 'admin':
         return jsonify({'success': False, 'error': 'Admin access required'}), 403
     
     try:
@@ -718,7 +422,7 @@ def admin_update_status(order_id):
             UPDATE order_status 
             SET is_completed = 1, status_time = ?, updated_by = ?, notes = ?
             WHERE order_id = ? AND status_label = ?
-        ''', (datetime.now().isoformat(), session['username'], notes, order_id, new_status))
+        ''', (datetime.now().isoformat(), current_user['username'], notes, order_id, new_status))
         
         conn.commit()
         conn.close()
@@ -775,9 +479,10 @@ if __name__ == '__main__':
     print("\n" + "="*60)
     print("🚀 TAILOREASE BACKEND SERVER RUNNING")
     print("="*60)
-    print("📍 http://localhost:5000")
+    port = int(os.environ.get('PORT', 5000))
+    print(f"📍 http://localhost:{port}")
     print("\n👤 Default Logins:")
     print("   Admin: admin / admin123")
     print("   User:  testuser / user123")
     print("="*60 + "\n")
-    app.run(debug=True, port=5000)
+    app.run(debug=True, host='0.0.0.0', port=port)
