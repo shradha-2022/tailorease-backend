@@ -50,6 +50,7 @@
   .nav-links a {
     color: var(--muted); text-decoration: none;
     font-size: 0.95rem; font-weight: 600; transition: color var(--t);
+    cursor: pointer;
   }
   .nav-links a:hover { color: var(--purple); }
   .nav-cta {
@@ -57,6 +58,7 @@
     padding: 0.6rem 1.6rem; border-radius: 50px;
     font-weight: 700; font-size: 0.95rem; text-decoration: none;
     transition: all var(--t); box-shadow: var(--shadow-pink);
+    cursor: pointer;
   }
   .nav-cta:hover { transform: translateY(-2px); }
   .nav-mobile-btn { display: none; background: none; border: none; color: var(--purple); font-size: 1.6rem; cursor: pointer; }
@@ -64,8 +66,6 @@
   .page.active { display: block; }
   .hero { min-height: 100vh; padding-top: 72px; background: var(--white); position: relative; overflow: hidden; display: flex; align-items: center; }
   .hero-blob { position: absolute; top: -10%; right: -5%; width: 680px; height: 680px; border-radius: 50%; background: radial-gradient(circle at 40% 40%, rgba(232,83,138,0.13) 0%, rgba(168,85,247,0.1) 50%, transparent 75%); pointer-events: none; }
-  .hero-blob2 { position: absolute; bottom: -15%; left: -5%; width: 480px; height: 480px; border-radius: 50%; background: radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%); pointer-events: none; }
-  .hero-ring { position: absolute; right: 8%; top: 50%; transform: translateY(-50%); width: 420px; height: 420px; border-radius: 50%; border: 1.5px solid rgba(232,83,138,0.15); pointer-events: none; }
   .hero-content { position: relative; z-index: 2; padding: 5rem 5% 5rem 8%; max-width: 700px; }
   .hero-pill { display: inline-flex; background: var(--pink-pale); color: var(--pink); padding: 0.45rem 1.2rem; border-radius: 50px; font-size: 0.85rem; font-weight: 700; margin-bottom: 2rem; }
   .hero h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(3rem, 6vw, 5.2rem); color: var(--ink); line-height: 1.0; margin-bottom: 1.6rem; }
@@ -90,40 +90,27 @@
   .hero-stats { display: flex; gap: 3rem; flex-wrap: wrap; }
   .hero-stat { padding-left: 1.5rem; border-left: 3px solid var(--pink-pale); }
   .hero-stat-num { font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; background: var(--grad-main); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .hero-stat-label { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
-  .hero-cards { position: absolute; right: 6%; top: 50%; transform: translateY(-50%); z-index: 3; display: flex; flex-direction: column; gap: 1rem; }
-  .hero-float-card { background: var(--white); border-radius: 18px; padding: 1.3rem 1.6rem; box-shadow: 0 8px 32px rgba(124,58,237,0.12); width: 240px; }
-  .floating-now { position: absolute; right: 4%; top: 22%; background: var(--grad-main); color: var(--white); padding: 0.65rem 1.2rem; border-radius: 14px; animation: float 3s ease-in-out infinite; z-index: 4; }
-  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
   .section { padding: 6rem 8%; }
   .section-light { background: var(--white); }
   .section-grad { background: var(--grad-soft); }
-  .section-dark { background: var(--ink); position: relative; overflow: hidden; }
+  .section-dark { background: var(--ink); }
   .section-header { margin-bottom: 3.5rem; }
   .eyebrow { display: inline-flex; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pink); margin-bottom: 1rem; background: var(--pink-pale); padding: 0.35rem 1rem; border-radius: 50px; }
   .section-title { font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 3.5rem); line-height: 1.05; font-weight: 800; color: var(--ink); }
   .section-title .grad-text { background: var(--grad-main); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
   .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
   .step { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius); padding: 2rem 1.5rem; }
-  .step-num { width: 52px; height: 52px; border-radius: 16px; background: var(--grad-main); color: var(--white); font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; display: flex; align-items: center; justify-content: center; margin-bottom: 1.3rem; }
   .step h3 { font-family: var(--font-display); font-weight: 700; color: var(--white); margin-bottom: 0.6rem; }
   .step p { font-size: 0.9rem; color: rgba(255,255,255,0.45); }
   .garments-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1rem; }
   .garment-chip { border: 2px solid var(--border); border-radius: var(--radius); padding: 1.3rem 0.8rem; text-align: center; background: var(--white); cursor: pointer; transition: all var(--t); }
   .garment-chip span { display: block; font-size: 2rem; margin-bottom: 0.5rem; }
-  .garment-chip:hover { border-color: var(--pink); background: var(--pink-pale); transform: translateY(-4px); }
   .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 1.4rem; }
   .service-card { background: var(--grad-card); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 2.2rem 2rem; transition: all var(--t); }
-  .service-card:hover { transform: translateY(-5px); }
-  .service-icon { font-size: 2.2rem; margin-bottom: 1.3rem; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; background: var(--grad-soft); border-radius: 16px; }
   .booking-container { max-width: 740px; margin: 0 auto; }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
   .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
-  .form-group label { font-size: 0.85rem; font-weight: 700; color: var(--ink2); }
   .form-group input, .form-group select, .form-group textarea { padding: 0.9rem 1.1rem; border: 2px solid rgba(124,58,237,0.12); border-radius: 14px; font-family: var(--font-body); font-size: 1rem; background: var(--white); outline: none; }
-  .form-group input:focus { border-color: var(--pink); }
-  .form-divider { height: 2px; background: var(--grad-soft); border-radius: 2px; margin: 2rem 0; }
-  .form-section-label { font-family: var(--font-display); font-size: 1rem; font-weight: 700; color: var(--ink); margin-bottom: 1.3rem; }
   .slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 0.75rem; margin-top: 0.6rem; }
   .slot { border: 2px solid rgba(124,58,237,0.12); border-radius: 12px; padding: 0.7rem; text-align: center; cursor: pointer; background: var(--white); transition: all var(--t); }
   .slot:hover, .slot.selected { background: var(--grad-main); color: var(--white); }
@@ -132,9 +119,6 @@
   .toggle-btn:hover, .toggle-btn.selected { background: var(--grad-main); color: var(--white); }
   .tracking-section { background: var(--off-white); padding: 6rem 5%; min-height: 100vh; padding-top: 9rem; }
   .tracking-demo { background: var(--white); border: 2px solid var(--border); border-radius: 24px; padding: 2.5rem; max-width: 580px; margin: 0 auto; }
-  .order-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
-  .order-num { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; }
-  .order-badge { background: var(--pink-pale); border: 1.5px solid rgba(232,83,138,0.25); color: var(--pink); padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.8rem; font-weight: 700; }
   .timeline { position: relative; }
   .timeline-item { display: flex; gap: 1rem; padding-bottom: 1.8rem; position: relative; }
   .tl-line { position: absolute; left: 15px; top: 32px; bottom: 0; width: 2px; background: var(--border); }
@@ -143,42 +127,23 @@
   .dot-done { background: var(--grad-main); color: var(--white); }
   .dot-active { background: var(--pink-pale); border: 2px solid var(--pink); color: var(--pink); font-weight: 700; }
   .dot-pending { background: rgba(124,58,237,0.05); border: 2px solid var(--border); color: var(--muted); }
-  .tl-label { font-size: 0.95rem; font-weight: 600; color: var(--muted); }
-  .tl-label.done { color: var(--ink); }
-  .tl-label.active { color: var(--pink); font-weight: 700; }
   .reviews-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.4rem; }
   .review-card { background: var(--white); border: 2px solid var(--border); border-radius: var(--radius); padding: 2rem; }
-  footer { background: var(--ink); padding: 5rem 8% 2.5rem; }
-  .footer-grid { display: grid; grid-template-columns: 1.8fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3.5rem; }
+  footer { background: var(--ink); padding: 5rem 8% 2.5rem; margin-top: 4rem; }
   .footer-logo { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; background: var(--grad-main); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(26,10,46,0.7); backdrop-filter: blur(8px); z-index: 2000; align-items: center; justify-content: center; }
   .modal-overlay.open { display: flex; }
   .modal { background: var(--white); border-radius: 24px; padding: 3rem; max-width: 420px; width: 90%; position: relative; text-align: center; }
-  .modal-close { position: absolute; top: 1rem; right: 1rem; background: rgba(124,58,237,0.08); border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; }
-  .alert { display: none; padding: 1.1rem 1.3rem; border-radius: 14px; margin-bottom: 1.3rem; }
-  .alert.success { background: rgba(232,83,138,0.07); border: 1.5px solid rgba(232,83,138,0.2); color: var(--pink); display: flex; align-items: center; gap: 8px; }
-  .contact-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.2rem; margin-bottom: 3rem; }
-  .contact-card { background: var(--white); border: 2px solid var(--border); border-radius: var(--radius); padding: 2rem; text-align: center; }
-  
-  /* Login Modal Styles */
   .login-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center; }
   .login-modal.active { display: flex; }
   .login-container { background: white; padding: 2rem; border-radius: 20px; width: 90%; max-width: 400px; position: relative; }
-  .login-container h2 { font-family: var(--font-display); margin-bottom: 1.5rem; color: var(--ink); }
-  .login-container input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid var(--border); border-radius: 10px; font-size: 1rem; }
-  .login-container button { width: 100%; margin-top: 1rem; }
-  .user-info { display: flex; align-items: center; gap: 1rem; margin-left: 1rem; }
-  .user-name { color: var(--purple); font-weight: 600; }
-  .logout-btn { background: none; border: 1px solid var(--border); padding: 0.5rem 1rem; border-radius: 50px; cursor: pointer; color: var(--muted); }
+  .login-container input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid var(--border); border-radius: 10px; }
+  .user-info { display: flex; align-items: center; gap: 1rem; }
   .admin-panel { background: var(--white); border-radius: 20px; padding: 2rem; margin: 2rem 0; overflow-x: auto; }
   .admin-table table { width: 100%; border-collapse: collapse; }
   .admin-table th, .admin-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
   .admin-table th { background: var(--grad-main); color: white; }
-  .status-select { padding: 6px; border-radius: 8px; border: 1px solid var(--border); }
-  .update-status-btn { background: var(--grad-main); color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
-  
-  @media (max-width: 1100px) { .hero-cards, .hero-ring, .floating-now { display: none; } }
-  @media (max-width: 960px) { .steps { grid-template-columns: repeat(2, 1fr); } }
+  .status-select { padding: 6px; border-radius: 8px; }
   @media (max-width: 768px) { .nav-links { display: none; } .nav-mobile-btn { display: block; } .form-row { grid-template-columns: 1fr; } .steps { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -187,261 +152,194 @@
 <nav>
   <div class="nav-logo">TailorEase</div>
   <ul class="nav-links">
-    <li><a href="#" onclick="showSection('home')">Home</a></li>
-    <li><a href="#" onclick="showSection('services')">Services</a></li>
-    <li><a href="#" onclick="showSection('booking')">Book Now</a></li>
-    <li><a href="#" onclick="showSection('tracking')">Track Order</a></li>
-    <li><a href="#" onclick="showSection('contact')">Contact</a></li>
+    <li><a onclick="showSection('home')">Home</a></li>
+    <li><a onclick="showSection('services')">Services</a></li>
+    <li><a onclick="showSection('booking')">Book Now</a></li>
+    <li><a onclick="showSection('tracking')">Track Order</a></li>
+    <li><a onclick="showSection('contact')">Contact</a></li>
   </ul>
-  <div id="nav-buttons" style="display: flex; gap: 1rem; align-items: center;">
-    <a href="#" class="nav-cta" onclick="showSection('booking')">Book a Tailor →</a>
+  <div style="display: flex; gap: 1rem; align-items: center;">
+    <a class="nav-cta" onclick="handleBookCTA()">Book a Tailor →</a>
     <button id="login-nav-btn" class="btn-outline" style="padding: 0.5rem 1.2rem;" onclick="showLoginModal()">Login</button>
     <div id="user-info-nav" style="display: none; gap: 1rem; align-items: center;"></div>
   </div>
   <button class="nav-mobile-btn" onclick="toggleMobileMenu()">☰</button>
 </nav>
 
-<!-- HOME PAGE -->
+<!-- Pages -->
 <div class="page active" id="page-home">
   <section class="hero">
-    <div class="hero-blob"></div><div class="hero-blob2"></div><div class="hero-ring"></div>
-    <div class="floating-now">✦ Next slot: Today 4 PM</div>
+    <div class="hero-blob"></div>
     <div class="hero-content">
-      <div class="hero-pill">✿ Premium Tailoring for Her</div>
+      <div class="hero-pill">✦ Next slot: Today 4 PM</div>
       <h1>Stitched <span class="grad-text">perfectly</span><br>for you.</h1>
       <p>Expert tailors visit your home, take your measurements, collect your fabric, and deliver garments that fit perfectly.</p>
       <div class="hero-actions">
-        <button class="btn-primary" onclick="showSection('booking')">Book a Home Visit →</button>
+        <button class="btn-primary" onclick="handleBookCTA()">Book a Home Visit →</button>
         <button class="btn-outline" onclick="showSection('tracking')">Track My Order</button>
       </div>
       <div class="hero-stats">
         <div class="hero-stat"><div class="hero-stat-num" id="statCustomers">2,400+</div><div class="hero-stat-label">Happy Customers</div></div>
-        <div class="hero-stat"><div class="hero-stat-num">120+</div><div class="hero-stat-label">Skilled Tailors</div></div>
-        <div class="hero-stat"><div class="hero-stat-num">4.9 ★</div><div class="hero-stat-label">Avg. Rating</div></div>
       </div>
-    </div>
-    <div class="hero-cards">
-      <div class="hero-float-card"><div class="hfc-label">🌸 Trending Now</div><div class="hfc-title">Bridal Blouse & Lehenga</div></div>
-    </div>
-  </section>
-
-  <section class="section section-dark">
-    <div class="section-header"><div class="eyebrow">Simple Process</div><h2 class="section-title">From booking to <span class="grad-text">beautiful</span></h2></div>
-    <div class="steps">
-      <div class="step"><div class="step-num">1</div><h3>Book Online</h3><p>Pick a date, time slot, and address</p></div>
-      <div class="step"><div class="step-num">2</div><h3>Tailor Visits</h3><p>Expert tailor arrives for measurements</p></div>
-      <div class="step"><div class="step-num">3</div><h3>Fabric Pickup</h3><p>We collect cloth and stitch with care</p></div>
-      <div class="step"><div class="step-num">4</div><h3>Delivered</h3><p>Perfectly fitted garment back to you</p></div>
-    </div>
-  </section>
-
-  <section class="section section-light">
-    <div class="section-header"><div class="eyebrow">What We Stitch</div><h2 class="section-title">Every garment, <span class="grad-text">perfected</span></h2></div>
-    <div class="garments-grid">
-      <div class="garment-chip"><span>👔</span>Shirt</div><div class="garment-chip"><span>👖</span>Pant</div>
-      <div class="garment-chip"><span>🥻</span>Blouse</div><div class="garment-chip"><span>👗</span>Kurti</div>
-      <div class="garment-chip"><span>🤵</span>Suit</div><div class="garment-chip"><span>💃</span>Lehenga</div>
-    </div>
-  </section>
-
-  <section class="section section-grad">
-    <div class="section-header"><div class="eyebrow">Customer Love</div><h2 class="section-title">Worn with <span class="grad-text">joy</span></h2></div>
-    <div class="reviews-grid">
-      <div class="review-card"><div class="review-stars">★★★★★</div><p class="review-text">"The tailor was so professional. My bridal blouse fits like a dream!"</p><div class="review-author"><div class="avatar">PR</div><div><div class="author-name">Priya R.</div></div></div></div>
-      <div class="review-card"><div class="review-stars">★★★★★</div><p class="review-text">"Booked for blouse alterations. Super easy, real-time tracking!"</p><div class="review-author"><div class="avatar">AM</div><div><div class="author-name">Ananya M.</div></div></div></div>
     </div>
   </section>
 </div>
 
-<!-- SERVICES PAGE -->
 <div class="page" id="page-services">
   <section class="section" style="padding-top:9rem;">
     <div class="section-header"><div class="eyebrow">Our Services</div><h2 class="section-title">Everything stitched <span class="grad-text">for her</span></h2></div>
     <div class="services-grid">
-      <div class="service-card"><div class="service-icon">📐</div><h3>Measurement Visit</h3><p>Tailor visits your home for precise measurements.</p><div class="service-price">Free with order</div></div>
-      <div class="service-card"><div class="service-icon">✂️</div><h3>Custom Stitching</h3><p>Made to your exact measurements.</p><div class="service-price">Starting ₹299</div></div>
-      <div class="service-card"><div class="service-icon">🧵</div><h3>Alterations</h3><p>Perfect fit guaranteed.</p><div class="service-price">Starting ₹99</div></div>
+      <div class="service-card"><h3>📐 Measurement Visit</h3><p>Free with order</p></div>
+      <div class="service-card"><h3>✂️ Custom Stitching</h3><p>Starting ₹299</p></div>
+      <div class="service-card"><h3>🧵 Alterations</h3><p>Starting ₹99</p></div>
     </div>
-    <div style="text-align:center;"><button class="btn-primary" onclick="showSection('booking')">Book a Service →</button></div>
   </section>
 </div>
 
-<!-- BOOKING PAGE -->
 <div class="page" id="page-booking">
   <section class="section" style="padding-top:9rem;">
     <div class="booking-container">
       <div class="section-header"><div class="eyebrow">Schedule a Visit</div><h2 class="section-title">Book your <span class="grad-text">home visit</span></h2></div>
-      <div id="booking-alert" class="alert success">✅ Booking confirmed!</div>
       <form id="booking-form" onsubmit="submitBooking(event)">
-        <div class="form-section-label">Personal Information</div>
         <div class="form-row">
           <div class="form-group"><label>Full Name</label><input id="custName" type="text" required></div>
           <div class="form-group"><label>Mobile</label><input id="custPhone" type="tel" required></div>
         </div>
         <div class="form-row">
           <div class="form-group"><label>Email</label><input id="custEmail" type="email"></div>
-          <div class="form-group"><label>City</label><select id="custCity" required><option value="">Select city...</option><option>Bangalore</option><option>Mumbai</option><option>Delhi</option></select></div>
+          <div class="form-group"><label>City</label><select id="custCity" required><option>Bangalore</option><option>Mumbai</option><option>Delhi</option></select></div>
         </div>
-        <div class="form-divider"></div>
-        <div class="form-section-label">Delivery Address</div>
-        <div class="form-group"><input id="custAddress" type="text" placeholder="Full Address" required></div>
-        <div class="form-divider"></div>
-        <div class="form-section-label">Service Details</div>
+        <div class="form-group"><label>Address</label><input id="custAddress" type="text" required></div>
         <div class="form-group"><label>Garment Type</label><select id="garmentType" required><option>Blouse</option><option>Kurti</option><option>Lehenga</option><option>Suit</option></select></div>
-        <div class="form-group" style="margin-bottom:1.2rem;">
-  <label>Purpose of Visit</label>
-  <div class="toggle-wrap"><div class="toggle-btn selected" onclick="toggleService(this)">📐 Measurement Only</div> <div class="toggle-btn" onclick="toggleService(this)">🚚 Cloth Pickup Only</div> <div class="toggle-btn" onclick="toggleService(this)">✅ Both (Measurement + Pickup)</div></div></div>
-        <div class="form-divider"></div>
-        <div class="form-section-label">Date & Time</div>
-        <div class="form-group"><input type="date" id="bookingDate" required></div>
-        <div class="form-group"><div class="slot-grid" id="slotGrid"><div class="slot">10:00 AM</div><div class="slot">2:00 PM</div><div class="slot">4:00 PM</div><div class="slot">6:00 PM</div></div></div>
-        <button type="submit" class="btn-primary" style="width:100%; margin-top:2rem;">Confirm Booking →</button>
+        <div class="form-group">
+          <label>Service Type</label>
+          <div class="toggle-wrap"><div class="toggle-btn selected" onclick="toggleService(this)">📐 Measurement Only</div><div class="toggle-btn" onclick="toggleService(this)">✅ Both</div></div>
+        </div>
+        <div class="form-group"><label>Date</label><input type="date" id="bookingDate" required></div>
+        <div class="form-group">
+          <label>Time Slot</label>
+          <div class="slot-grid" id="slotGrid">
+            <div class="slot" onclick="selectSlot(this)">10:00 AM</div>
+            <div class="slot" onclick="selectSlot(this)">2:00 PM</div>
+            <div class="slot" onclick="selectSlot(this)">4:00 PM</div>
+            <div class="slot" onclick="selectSlot(this)">6:00 PM</div>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%;">Confirm Booking →</button>
       </form>
     </div>
   </section>
 </div>
 
-<!-- TRACKING PAGE -->
 <div class="page" id="page-tracking">
   <div class="tracking-section">
-    <div style="text-align:center;"><div class="eyebrow">Live Status</div><h2 class="section-title">Track your <span class="grad-text">order</span></h2>
-      <div style="display:flex; gap:0.8rem; max-width:400px; margin:1.8rem auto;"><input type="text" id="order-input" placeholder="Enter Order ID"><button class="btn-primary" onclick="trackOrder()">Track →</button></div>
+    <div style="text-align:center;">
+      <div class="eyebrow">Live Status</div>
+      <h2 class="section-title">Track your <span class="grad-text">order</span></h2>
+      <div style="display:flex; gap:0.8rem; max-width:400px; margin:1.8rem auto;">
+        <input type="text" id="order-input" placeholder="Enter Order ID" style="flex:1; padding:12px;">
+        <button class="btn-primary" onclick="trackOrder()">Track →</button>
+      </div>
     </div>
     <div class="tracking-demo" id="tracking-demo">
-      <div class="order-header"><div><div class="order-id">Order ID</div><div class="order-num" id="trackOrderId">#TE-10023</div></div><div class="order-badge" id="trackStatusBadge">Stitching in Progress</div></div>
+      <div class="order-header"><h3 id="trackOrderId">#TE-XXXXX</h3><span class="order-badge" id="trackStatusBadge">Status</span></div>
       <div class="timeline" id="timelineContainer"></div>
     </div>
   </div>
 </div>
 
-<!-- CONTACT PAGE -->
 <div class="page" id="page-contact">
   <section class="section" style="padding-top:9rem;">
     <div style="max-width:620px; margin:0 auto;">
-      <div class="section-header"><div class="eyebrow">Get in Touch</div><h2 class="section-title">We're here to <span class="grad-text">help</span></h2></div>
-      <div class="contact-cards"><div class="contact-card"><div class="contact-card-icon">📞</div><h4>Call Us</h4><p>+91 98765 43210</p></div></div>
+      <h2 class="section-title">Get in <span class="grad-text">touch</span></h2>
       <form onsubmit="submitContact(event)">
-        <div id="contact-alert" class="alert success">✅ Message sent!</div>
-        <div class="form-row"><div class="form-group"><input type="text" id="contactName" placeholder="Name" required></div><div class="form-group"><input type="tel" id="contactPhone" placeholder="Phone"></div></div>
-        <div class="form-group"><input type="email" id="contactEmail" placeholder="Email"></div>
-        <div class="form-group"><textarea id="contactMsg" rows="4" placeholder="Message" required></textarea></div>
-        <button type="submit" class="btn-primary">Send Message →</button>
+        <input type="text" id="contactName" placeholder="Name" required style="width:100%; padding:12px; margin:10px 0;">
+        <input type="email" id="contactEmail" placeholder="Email" style="width:100%; padding:12px; margin:10px 0;">
+        <textarea id="contactMsg" rows="4" placeholder="Message" required style="width:100%; padding:12px;"></textarea>
+        <button type="submit" class="btn-primary">Send →</button>
       </form>
     </div>
   </section>
 </div>
 
-<footer><div class="footer-grid"><div class="footer-brand"><span class="footer-logo">TailorEase</span><p>Premium tailoring at your doorstep.</p></div></div><div class="footer-bottom"><p>© 2026 TailorEase.</p></div></footer>
+<div id="userDashboard" style="display:none; padding: 2rem 8%;">
+  <h2 class="section-title">My <span class="grad-text">Bookings</span></h2>
+  <div id="userOrdersList"></div>
+</div>
 
-<!-- MODALS -->
-<div class="modal-overlay" id="booking-modal"><div class="modal"><button class="modal-close" onclick="closeModal()">✕</button><div class="modal-icon">🎉</div><h3>Booking Confirmed!</h3><p>Your tailor will arrive at the selected time.</p><div class="modal-meta"><div class="modal-meta-row"><span>Order ID</span><span id="modalOrderId">#TE-10024</span></div></div><button class="btn-primary" onclick="showSection('tracking'); closeModal()">Track Order →</button></div></div>
+<div id="adminDashboard" style="display:none; padding: 2rem 8%;">
+  <h2 class="section-title">Admin <span class="grad-text">Dashboard</span></h2>
+  <div class="admin-panel" id="adminOrdersList"></div>
+</div>
 
-<div class="login-modal" id="loginModal"><div class="login-container"><button class="modal-close" onclick="closeLoginModal()">✕</button><h2>Login to TailorEase</h2><div id="loginError" style="color:red;display:none;"></div><input type="text" id="loginUsername" placeholder="Username"><input type="password" id="loginPassword" placeholder="Password"><button class="btn-primary" onclick="login()">Login →</button><p style="margin-top:1rem;text-align:center;"><a href="#" onclick="showRegister()">Create an account</a></p></div></div>
+<footer><div class="footer-logo">TailorEase</div><p>© 2026 Premium Tailoring</p></footer>
 
-<div class="login-modal" id="registerModal"><div class="login-container"><button class="modal-close" onclick="closeRegisterModal()">✕</button><h2>Create Account</h2><div id="registerError" style="color:red;display:none;"></div><input type="text" id="regFullName" placeholder="Full Name"><input type="text" id="regUsername" placeholder="Username"><input type="email" id="regEmail" placeholder="Email"><input type="password" id="regPassword" placeholder="Password"><button class="btn-primary" onclick="register()">Register →</button><p style="margin-top:1rem;text-align:center;"><a href="#" onclick="showLogin()">Already have an account? Login</a></p></div></div>
-
-<div id="adminDashboard" style="display:none;"><section class="section"><div class="section-header"><div class="eyebrow">Admin Panel</div><h2 class="section-title">Manage <span class="grad-text">Orders</span></h2></div><div class="admin-panel"><div class="admin-table"><div id="adminOrdersList"></div></div></div></section></div>
-
-<div id="userDashboard" style="display:none;"><section class="section"><div class="section-header"><div class="eyebrow">My Orders</div><h2 class="section-title">Your <span class="grad-text">Bookings</span></h2></div><div id="userOrdersList"></div></section></div>
+<!-- Modals -->
+<div class="modal-overlay" id="booking-modal"><div class="modal"><h3>✅ Booking Confirmed!</h3><p>Order ID: <strong id="modalOrderId"></strong></p><button class="btn-primary" onclick="closeModal()">OK</button></div></div>
+<div class="login-modal" id="loginModal"><div class="login-container"><h2>Login</h2><div id="loginError" style="color:red;display:none;"></div><input type="text" id="loginUsername" placeholder="Username"><input type="password" id="loginPassword" placeholder="Password"><button class="btn-primary" onclick="login()">Login →</button><p><a onclick="showRegister()">Create account</a></p></div></div>
+<div class="login-modal" id="registerModal"><div class="login-container"><h2>Register</h2><input type="text" id="regFullName" placeholder="Full Name"><input type="text" id="regUsername" placeholder="Username"><input type="email" id="regEmail" placeholder="Email"><input type="password" id="regPassword" placeholder="Password"><button class="btn-primary" onclick="register()">Register →</button><p><a onclick="showLogin()">Back to Login</a></p></div></div>
 
 <script>
 const API_URL = 'https://backenddeploy-43wt.onrender.com/api';
 let currentUser = null;
-let authToken = null;
 
-// Check if user is logged in on page load
-async function checkAuth() {
+// Check auth on page load
+window.addEventListener('load', () => {
     const token = localStorage.getItem('authToken');
-    if (!token) {
-        updateUIForLoggedInUser();
-        return;
+    if (token) {
+        validateToken(token);
     }
-    
+    const dateInput = document.getElementById('bookingDate');
+    if (dateInput) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+    }
+    document.querySelectorAll('#slotGrid .slot')[0]?.classList.add('selected');
+    document.querySelectorAll('.toggle-btn')[0]?.classList.add('selected');
+});
+
+async function validateToken(token) {
     try {
         const response = await fetch(`${API_URL}/auth/me`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        
         if (response.ok) {
             const data = await response.json();
             currentUser = data.user;
-            authToken = token;
-            updateUIForLoggedInUser();
-            
-            // Load user-specific data
-            if (currentUser.role === 'admin') {
-                document.getElementById('adminDashboard').style.display = 'block';
-                document.getElementById('userDashboard').style.display = 'none';
-                loadAdminOrders();
-            } else {
-                document.getElementById('adminDashboard').style.display = 'none';
-                document.getElementById('userDashboard').style.display = 'block';
-                loadUserOrders();
-            }
+            updateUI();
         } else {
             localStorage.removeItem('authToken');
-            currentUser = null;
-            updateUIForLoggedInUser();
         }
     } catch (error) {
-        console.log('Not logged in');
-        currentUser = null;
-        updateUIForLoggedInUser();
+        console.error('Token validation failed:', error);
+        localStorage.removeItem('authToken');
     }
 }
 
-function updateUIForLoggedInUser() {
+function updateUI() {
     const loginBtn = document.getElementById('login-nav-btn');
     const userInfoDiv = document.getElementById('user-info-nav');
-    const navLinks = document.querySelector('.nav-links');
+    const userDashboard = document.getElementById('userDashboard');
+    const adminDashboard = document.getElementById('adminDashboard');
     
     if (currentUser) {
-        if (loginBtn) loginBtn.style.display = 'none';
-        if (userInfoDiv) {
-            userInfoDiv.style.display = 'flex';
-            const roleBadge = currentUser.role === 'admin' ? '👑 Admin' : '👤 User';
-            userInfoDiv.innerHTML = `
-                <span style="color: var(--purple); font-weight: 600;">
-                    ${roleBadge} ${currentUser.full_name || currentUser.username}
-                </span>
-                <button onclick="logout()" style="background: none; border: 1px solid var(--border); padding: 0.5rem 1rem; border-radius: 50px; cursor: pointer;">Logout</button>
-            `;
-        }
+        loginBtn.style.display = 'none';
+        userInfoDiv.style.display = 'flex';
+        userInfoDiv.innerHTML = `<span>👤 ${currentUser.full_name || currentUser.username} (${currentUser.role})</span><button onclick="logout()" class="btn-outline" style="padding:5px 12px;">Logout</button>`;
         
-        // Update nav CTA text based on role
-        const navCta = document.querySelector('.nav-cta');
-        if (navCta) {
-            if (currentUser.role === 'admin') {
-                navCta.textContent = '📊 Admin Panel';
-                navCta.onclick = () => showAdminPanel();
-            } else {
-                navCta.textContent = 'Book a Tailor →';
-                navCta.onclick = () => showSection('booking');
-            }
+        if (currentUser.role === 'admin') {
+            adminDashboard.style.display = 'block';
+            userDashboard.style.display = 'none';
+            loadAdminOrders();
+        } else {
+            adminDashboard.style.display = 'none';
+            userDashboard.style.display = 'block';
+            loadUserOrders();
         }
     } else {
-        if (loginBtn) loginBtn.style.display = 'block';
-        if (userInfoDiv) userInfoDiv.style.display = 'none';
-        document.getElementById('adminDashboard').style.display = 'none';
-        document.getElementById('userDashboard').style.display = 'none';
-        
-        const navCta = document.querySelector('.nav-cta');
-        if (navCta) {
-            navCta.textContent = 'Book a Tailor →';
-            navCta.onclick = () => showLoginModal();
-        }
-    }
-}
-
-function showAdminPanel() {
-    if (currentUser && currentUser.role === 'admin') {
-        showSection('services');
-        document.getElementById('adminDashboard').style.display = 'block';
-        document.getElementById('userDashboard').style.display = 'none';
-        loadAdminOrders();
-    } else {
-        alert('Admin access required');
-        showLoginModal();
+        loginBtn.style.display = 'block';
+        userInfoDiv.style.display = 'none';
+        userDashboard.style.display = 'none';
+        adminDashboard.style.display = 'none';
     }
 }
 
@@ -449,12 +347,6 @@ async function login() {
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
     const errorDiv = document.getElementById('loginError');
-    
-    if (!username || !password) {
-        errorDiv.textContent = 'Please enter username and password';
-        errorDiv.style.display = 'block';
-        return;
-    }
     
     try {
         const response = await fetch(`${API_URL}/auth/login`, {
@@ -466,25 +358,17 @@ async function login() {
         const data = await response.json();
         
         if (data.success) {
+            localStorage.setItem('authToken', data.token);
             currentUser = data.user;
-            authToken = data.token;
-            localStorage.setItem('authToken', authToken);
+            updateUI();
             closeLoginModal();
-            
-            // Show success message based on role
-            if (currentUser.role === 'admin') {
-                alert(`Welcome Admin ${currentUser.full_name || currentUser.username}! You can manage all orders.`);
-            } else {
-                alert(`Welcome ${currentUser.full_name || currentUser.username}! You can now book tailoring services.`);
-            }
-            
-            location.reload(); // Refresh to update UI
+            alert(`✅ Welcome ${currentUser.full_name || currentUser.username}!`);
         } else {
-            errorDiv.textContent = data.error || 'Login failed';
+            errorDiv.textContent = data.error;
             errorDiv.style.display = 'block';
         }
     } catch (error) {
-        errorDiv.textContent = 'Cannot connect to server. Please try again.';
+        errorDiv.textContent = 'Connection error';
         errorDiv.style.display = 'block';
     }
 }
@@ -494,228 +378,61 @@ async function register() {
     const username = document.getElementById('regUsername').value;
     const email = document.getElementById('regEmail').value;
     const password = document.getElementById('regPassword').value;
-    const errorDiv = document.getElementById('registerError');
     
-    if (!username || !password) {
-        errorDiv.textContent = 'Username and password required';
-        errorDiv.style.display = 'block';
-        return;
-    }
+    const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ full_name, username, email, password })
+    });
     
-    try {
-        const response = await fetch(`${API_URL}/auth/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ full_name, username, email, password })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            alert('Registration successful! Please login.');
-            closeRegisterModal();
-            showLoginModal();
-        } else {
-            errorDiv.textContent = data.error;
-            errorDiv.style.display = 'block';
-        }
-    } catch (error) {
-        errorDiv.textContent = 'Registration failed. Please try again.';
-        errorDiv.style.display = 'block';
+    const data = await response.json();
+    if (data.success) {
+        alert('Registration successful! Please login.');
+        closeRegisterModal();
+        showLoginModal();
+    } else {
+        alert('Registration failed: ' + data.error);
     }
 }
 
 async function logout() {
     localStorage.removeItem('authToken');
     currentUser = null;
-    authToken = null;
-    alert('Logged out successfully');
-    location.reload();
-}
-
-function getAuthHeaders() {
-    const token = localStorage.getItem('authToken');
-    return {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-    };
-}
-
-async function loadUserOrders() {
-    try {
-        const response = await fetch(`${API_URL}/bookings/user`, {
-            headers: getAuthHeaders()
-        });
-        const data = await response.json();
-        
-        const container = document.getElementById('userOrdersList');
-        
-        if (data.success && data.bookings && data.bookings.length > 0) {
-            let html = '<div class="reviews-grid">';
-            data.bookings.forEach(booking => {
-                html += `
-                    <div class="review-card">
-                        <h3>Order: ${booking.order_id}</h3>
-                        <p><strong>Garment:</strong> ${booking.garment_type}</p>
-                        <p><strong>Service:</strong> ${booking.service_type}</p>
-                        <p><strong>Status:</strong> <span style="color:#E8538A; font-weight:bold;">${booking.status}</span></p>
-                        <p><strong>Date:</strong> ${booking.preferred_date}</p>
-                        <p><strong>Time:</strong> ${booking.time_slot}</p>
-                        <button class="btn-outline" onclick="trackOrderById('${booking.order_id}')">Track Order →</button>
-                    </div>
-                `;
-            });
-            html += '</div>';
-            container.innerHTML = html;
-        } else {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 3rem;">
-                    <p>📦 No orders yet.</p>
-                    <button class="btn-primary" onclick="showSection('booking')" style="margin-top: 1rem;">Book Your First Order →</button>
-                </div>
-            `;
-        }
-    } catch (error) {
-        console.error('Error loading orders:', error);
-        document.getElementById('userOrdersList').innerHTML = '<p style="color:red;">Error loading orders. Please login again.</p>';
-    }
-}
-
-async function loadAdminOrders() {
-    try {
-        const response = await fetch(`${API_URL}/admin/bookings`, {
-            headers: getAuthHeaders()
-        });
-        const data = await response.json();
-        
-        const container = document.getElementById('adminOrdersList');
-        
-        if (data.success && data.bookings && data.bookings.length > 0) {
-            let html = `
-                <table style="width:100%; border-collapse: collapse;">
-                    <thead>
-                        <tr style="background: var(--grad-main); color: white;">
-                            <th style="padding: 12px;">Order ID</th>
-                            <th style="padding: 12px;">Customer</th>
-                            <th style="padding: 12px;">Garment</th>
-                            <th style="padding: 12px;">Status</th>
-                            <th style="padding: 12px;">Update</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-            
-            data.bookings.forEach(booking => {
-                html += `
-                    <tr style="border-bottom: 1px solid var(--border);">
-                        <td style="padding: 12px;"><strong>${booking.order_id}</strong></td>
-                        <td style="padding: 12px;">${booking.customer_name}<br><small>${booking.phone}</small></td>
-                        <td style="padding: 12px;">${booking.garment_type}</td>
-                        <td style="padding: 12px;">
-                            <span style="background: ${booking.status === 'Delivered' ? '#4CAF50' : '#E8538A'}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem;">
-                                ${booking.status}
-                            </span>
-                        </td>
-                        <td style="padding: 12px;">
-                            <select id="status-${booking.order_id}" class="status-select" style="padding: 6px; margin-right: 8px;">
-                                <option value="Booking Confirmed">Booking Confirmed</option>
-                                <option value="Tailor Assigned">Tailor Assigned</option>
-                                <option value="Measurements Taken">Measurements Taken</option>
-                                <option value="Fabric Picked Up">Fabric Picked Up</option>
-                                <option value="Stitching in Progress">Stitching in Progress</option>
-                                <option value="Quality Check">Quality Check</option>
-                                <option value="Ready for Delivery">Ready for Delivery</option>
-                                <option value="Out for Delivery">Out for Delivery</option>
-                                <option value="Delivered">Delivered</option>
-                            </select>
-                            <button class="update-status-btn" onclick="updateOrderStatus('${booking.order_id}')" style="background: var(--grad-main); color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer;">
-                                Update
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
-            
-            html += '</tbody></table>';
-            container.innerHTML = html;
-            
-            // Set current status in dropdowns
-            data.bookings.forEach(booking => {
-                const select = document.getElementById(`status-${booking.order_id}`);
-                if(select) select.value = booking.status;
-            });
-        } else {
-            container.innerHTML = '<p style="text-align: center; padding: 2rem;">No orders in the system yet.</p>';
-        }
-    } catch (error) {
-        console.error('Error loading admin orders:', error);
-        document.getElementById('adminOrdersList').innerHTML = '<p style="color:red;">Error loading orders. Please ensure you are logged in as admin.</p>';
-    }
-}
-
-async function updateOrderStatus(orderId) {
-    const status = document.getElementById(`status-${orderId}`).value;
-    
-    if (!confirm(`Update order ${orderId} status to "${status}"?`)) {
-        return;
-    }
-    
-    try {
-        const response = await fetch(`${API_URL}/admin/bookings/${orderId}/status`, {
-            method: 'PUT',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ 
-                status, 
-                expected_completion_date: '',
-                notes: `Status updated to ${status} by admin`
-            })
-        });
-        
-        const data = await response.json();
-        if (data.success) {
-            alert('✅ Order status updated successfully!');
-            loadAdminOrders(); // Refresh the list
-        } else {
-            alert('❌ Update failed: ' + data.error);
-        }
-    } catch (error) {
-        alert('Error updating status');
-    }
+    updateUI();
+    alert('Logged out');
 }
 
 async function submitBooking(e) {
     e.preventDefault();
     
-    if (!currentUser) {
-        alert('Please login to book a service');
+    const token = localStorage.getItem('authToken');
+    if (!token || !currentUser) {
+        alert('⚠️ Please login first to book a service');
         showLoginModal();
         return;
     }
     
     const formData = {
-        customer_name: document.getElementById('custName')?.value,
-        phone: document.getElementById('custPhone')?.value,
-        email: document.getElementById('custEmail')?.value,
-        city: document.getElementById('custCity')?.value,
-        address: document.getElementById('custAddress')?.value,
-        garment_type: document.getElementById('garmentType')?.value,
-        service_type: document.querySelector('#page-booking .toggle-btn.selected')?.innerText || 'Both',
-        preferred_date: document.getElementById('bookingDate')?.value,
-        time_slot: document.querySelector('#page-booking .slot.selected')?.innerText || '10:00 AM',
+        customer_name: document.getElementById('custName').value,
+        phone: document.getElementById('custPhone').value,
+        email: document.getElementById('custEmail').value,
+        city: document.getElementById('custCity').value,
+        address: document.getElementById('custAddress').value,
+        garment_type: document.getElementById('garmentType').value,
+        service_type: document.querySelector('.toggle-btn.selected')?.innerText || 'Both',
+        preferred_date: document.getElementById('bookingDate').value,
+        time_slot: document.querySelector('.slot.selected')?.innerText || '10:00 AM',
         special_instructions: '',
         payment_method: 'UPI / Online'
     };
     
-    // Validation
-    if (!formData.customer_name || !formData.phone || !formData.city || !formData.address || !formData.preferred_date) {
-        alert('Please fill all required fields');
-        return;
-    }
-    
     try {
         const response = await fetch(`${API_URL}/bookings`, {
             method: 'POST',
-            headers: getAuthHeaders(),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify(formData)
         });
         
@@ -724,209 +441,143 @@ async function submitBooking(e) {
         if (result.success) {
             document.getElementById('modalOrderId').textContent = result.order_id;
             document.getElementById('booking-modal').classList.add('open');
-            document.getElementById('booking-form')?.reset();
-            
-            // Reset date picker to today
-            const dateInput = document.getElementById('bookingDate');
-            if(dateInput) dateInput.value = new Date().toISOString().split('T')[0];
-            
-            // Reset slot selection
-            document.querySelectorAll('#slotGrid .slot').forEach(s => s.classList.remove('selected'));
-            document.querySelector('#slotGrid .slot')?.classList.add('selected');
-            
-            alert(`✅ Booking confirmed! Your Order ID: ${result.order_id}\nYou can track it in "Track Order" section.`);
+            document.getElementById('booking-form').reset();
+            alert(`✅ Booking confirmed! Order ID: ${result.order_id}`);
+            if (currentUser.role !== 'admin') loadUserOrders();
         } else {
             alert('Booking failed: ' + result.error);
         }
     } catch (error) {
-        alert('Cannot connect to server. Error: ' + error.message);
+        alert('Error: ' + error.message);
     }
+}
+
+async function loadUserOrders() {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+    
+    const response = await fetch(`${API_URL}/bookings/user`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await response.json();
+    
+    if (data.success && data.bookings.length > 0) {
+        document.getElementById('userOrdersList').innerHTML = data.bookings.map(b => `
+            <div class="review-card">
+                <h3>${b.order_id}</h3>
+                <p>${b.garment_type} - ${b.status}</p>
+                <button class="btn-outline" onclick="trackOrderById('${b.order_id}')">Track</button>
+            </div>
+        `).join('');
+    } else {
+        document.getElementById('userOrdersList').innerHTML = '<p>No orders yet. <a onclick="showSection(\'booking\')">Book now</a></p>';
+    }
+}
+
+async function loadAdminOrders() {
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`${API_URL}/admin/bookings`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await response.json();
+    
+    if (data.success && data.bookings.length > 0) {
+        document.getElementById('adminOrdersList').innerHTML = `
+            <table><thead><tr><th>Order ID</th><th>Customer</th><th>Status</th><th>Update</th></tr></thead><tbody>
+            ${data.bookings.map(b => `
+                <tr>
+                    <td>${b.order_id}</td>
+                    <td>${b.customer_name}</td>
+                    <td>${b.status}</td>
+                    <td><select id="status-${b.order_id}"><option>Booking Confirmed</option><option>Stitching in Progress</option><option>Delivered</option></select>
+                    <button onclick="updateStatus('${b.order_id}')">Update</button></td>
+                </td>
+            `).join('')}
+            </tbody></table>
+        `;
+    }
+}
+
+async function updateStatus(orderId) {
+    const status = document.getElementById(`status-${orderId}`).value;
+    const token = localStorage.getItem('authToken');
+    await fetch(`${API_URL}/admin/bookings/${orderId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ status })
+    });
+    alert('Status updated');
+    loadAdminOrders();
 }
 
 async function trackOrder() {
-    const orderId = document.getElementById('order-input').value.trim();
-    if (!orderId) {
-        alert('Please enter an Order ID');
-        return;
-    }
+    const orderId = document.getElementById('order-input').value;
+    const token = localStorage.getItem('authToken');
+    if (!token) { alert('Please login'); showLoginModal(); return; }
     
-    if (!currentUser) {
-        alert('Please login to track orders');
-        showLoginModal();
-        return;
-    }
+    const response = await fetch(`${API_URL}/bookings/${orderId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await response.json();
     
-    try {
-        const response = await fetch(`${API_URL}/bookings/${orderId}`, {
-            headers: getAuthHeaders()
-        });
-        const data = await response.json();
-        
-        if (data.success) {
-            document.getElementById('trackOrderId').textContent = orderId;
-            document.getElementById('trackStatusBadge').textContent = data.order.status;
-            
-            const timelineContainer = document.getElementById('timelineContainer');
-            timelineContainer.innerHTML = '';
-            
-            data.timeline.forEach((item, index) => {
-                let dotClass = 'dot-pending';
-                let icon = '○';
-                if (item.done) { 
-                    dotClass = 'dot-done'; 
-                    icon = '✓'; 
-                } else if (item.active) { 
-                    dotClass = 'dot-active'; 
-                    icon = '●'; 
-                }
-                
-                const div = document.createElement('div');
-                div.className = 'timeline-item';
-                div.innerHTML = `
-                    <div class="tl-dot ${dotClass}">${icon}</div>
-                    ${index !== data.timeline.length - 1 ? '<div class="tl-line"></div>' : ''}
-                    <div class="tl-info">
-                        <div class="tl-label ${item.done ? 'done' : (item.active ? 'active' : '')}">${item.label}</div>
-                        <div class="tl-time">${item.time ? new Date(item.time).toLocaleString() : '⏳ Pending'}</div>
-                        ${item.notes ? `<div class="tl-notes" style="font-size: 0.8rem; color: var(--muted); margin-top: 4px;">📝 ${item.notes}</div>` : ''}
-                    </div>
-                `;
-                timelineContainer.appendChild(div);
-            });
-        } else {
-            alert('Order not found: ' + (data.error || 'Invalid order ID'));
-        }
-    } catch (error) {
-        alert('Error tracking order. Please make sure you are logged in and the order ID is correct.');
+    if (data.success) {
+        document.getElementById('trackOrderId').textContent = orderId;
+        document.getElementById('trackStatusBadge').textContent = data.order.status;
+        document.getElementById('timelineContainer').innerHTML = data.timeline.map(t => `
+            <div class="timeline-item">
+                <div class="tl-dot ${t.done ? 'dot-done' : (t.active ? 'dot-active' : 'dot-pending')}">${t.done ? '✓' : (t.active ? '●' : '○')}</div>
+                <div><strong>${t.label}</strong><br>${t.time || 'Pending'}</div>
+            </div>
+        `).join('');
+    } else {
+        alert('Order not found');
     }
 }
 
-async function trackOrderById(orderId) {
-    document.getElementById('order-input').value = orderId;
+async function trackOrderById(id) {
+    document.getElementById('order-input').value = id;
     showSection('tracking');
-    setTimeout(() => trackOrder(), 100);
+    setTimeout(trackOrder, 100);
 }
 
 async function submitContact(e) {
     e.preventDefault();
-    const formData = {
-        name: document.getElementById('contactName')?.value,
-        phone: document.getElementById('contactPhone')?.value,
-        email: document.getElementById('contactEmail')?.value,
-        message: document.getElementById('contactMsg')?.value
-    };
-    
-    if (!formData.name || !formData.message) {
-        alert('Please enter your name and message');
-        return;
-    }
-    
-    try {
-        const response = await fetch(`${API_URL}/contact`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
-        
-        const result = await response.json();
-        if (result.success) {
-            alert('✅ Message sent successfully! We\'ll get back to you soon.');
-            document.getElementById('contactName').value = '';
-            document.getElementById('contactPhone').value = '';
-            document.getElementById('contactEmail').value = '';
-            document.getElementById('contactMsg').value = '';
-        } else {
-            alert('Failed to send message');
-        }
-    } catch (error) {
-        alert('Cannot connect to server');
+    await fetch(`${API_URL}/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            name: document.getElementById('contactName').value,
+            email: document.getElementById('contactEmail').value,
+            message: document.getElementById('contactMsg').value
+        })
+    });
+    alert('Message sent!');
+    e.target.reset();
+}
+
+function handleBookCTA() {
+    if (currentUser) {
+        showSection('booking');
+    } else {
+        showLoginModal();
     }
 }
 
-// UI Functions
 function showSection(s) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page-' + s).classList.add('active');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById(`page-${s}`).classList.add('active');
+    window.scrollTo(0, 0);
 }
 
-function showLoginModal() { 
-    document.getElementById('loginModal').classList.add('active');
-    document.getElementById('loginUsername').value = '';
-    document.getElementById('loginPassword').value = '';
-    document.getElementById('loginError').style.display = 'none';
-}
-
-function closeLoginModal() { 
-    document.getElementById('loginModal').classList.remove('active');
-}
-
-function showRegister() { 
-    closeLoginModal(); 
-    document.getElementById('registerModal').classList.add('active');
-}
-
-function closeRegisterModal() { 
-    document.getElementById('registerModal').classList.remove('active');
-}
-
-function showLogin() { 
-    closeRegisterModal(); 
-    showLoginModal();
-}
-
-function closeModal() { 
-    document.getElementById('booking-modal').classList.remove('open');
-}
-
-function toggleService(el) { 
-    el.parentElement.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('selected')); 
-    el.classList.add('selected'); 
-}
-
-function selectSlot(el) { 
-    el.closest('.slot-grid').querySelectorAll('.slot').forEach(s => s.classList.remove('selected')); 
-    el.classList.add('selected'); 
-}
-
-function toggleMobileMenu() { 
-    const links = document.querySelector('.nav-links'); 
-    if (links.style.display === 'flex') {
-        links.style.display = '';
-    } else {
-        links.style.cssText = 'display:flex; flex-direction:column; position:absolute; top:72px; left:0; right:0; background:white; padding:1.5rem; gap:1rem; z-index:999; box-shadow: 0 10px 30px rgba(0,0,0,0.1);';
-    }
-}
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
-    // Set default date for booking
-    const dateInput = document.getElementById('bookingDate');
-    if (dateInput) { 
-        const today = new Date().toISOString().split('T')[0];
-        dateInput.min = today;
-        dateInput.value = today;
-    }
-    
-    // Set default slot selection
-    document.querySelectorAll('#slotGrid .slot')[0]?.classList.add('selected');
-    
-    // Check authentication
-    checkAuth();
-    
-    // Load stats
-    fetch(`${API_URL}/stats`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                const statElement = document.querySelector('.hero-stat-num');
-                if (statElement && data.base_customers) {
-                    statElement.textContent = data.base_customers + '+';
-                }
-            }
-        })
-        .catch(err => console.log('Stats error:', err));
-});
+function showLoginModal() { document.getElementById('loginModal').classList.add('active'); }
+function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
+function showRegister() { closeLoginModal(); document.getElementById('registerModal').classList.add('active'); }
+function closeRegisterModal() { document.getElementById('registerModal').classList.remove('active'); }
+function showLogin() { closeRegisterModal(); showLoginModal(); }
+function closeModal() { document.getElementById('booking-modal').classList.remove('open'); }
+function toggleService(el) { el.parentElement.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('selected')); el.classList.add('selected'); }
+function selectSlot(el) { el.closest('.slot-grid').querySelectorAll('.slot').forEach(s => s.classList.remove('selected')); el.classList.add('selected'); }
+function toggleMobileMenu() { const links = document.querySelector('.nav-links'); links.style.display = links.style.display === 'flex' ? 'none' : 'flex'; }
 </script>
 </body>
 </html>
