@@ -345,19 +345,26 @@
 <div id="userDashboard" style="display:none;"><section class="section"><div class="section-header"><div class="eyebrow">My Orders</div><h2 class="section-title">Your <span class="grad-text">Bookings</span></h2></div><div id="userOrdersList"></div></section></div>
 
 <script>
-const API_URL = 'https://tailorease-api.onrender.com/api';
+const API_URL = 'https://backenddeploy-43wt.onrender.com/api';  // FIXED URL
 let currentUser = null;
+let authToken = null;
 
 // Check if user is logged in on page load
 async function checkAuth() {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+    
     try {
         const response = await fetch(`${API_URL}/auth/me`, {
-            credentials: 'include'
+            headers: { 'Authorization': `Bearer ${token}` }
         });
         if (response.ok) {
             const data = await response.json();
             currentUser = data.user;
+            authToken = token;
             updateUIForLoggedInUser();
+        } else {
+            localStorage.removeItem('authToken');
         }
     } catch (error) {
         console.log('Not logged in');
@@ -365,14 +372,11 @@ async function checkAuth() {
 }
 
 function updateUIForLoggedInUser() {
-    const navLinks = document.querySelector('.nav-links');
-    const navCta = document.querySelector('.nav-cta');
     const loginBtn = document.getElementById('login-nav-btn');
     const userInfoDiv = document.getElementById('user-info-nav');
     
     if (currentUser) {
         if (loginBtn) loginBtn.style.display = 'none';
-        if (navCta) navCta.style.display = 'none';
         if (userInfoDiv) {
             userInfoDiv.style.display = 'flex';
             userInfoDiv.innerHTML = `
@@ -390,7 +394,6 @@ function updateUIForLoggedInUser() {
         }
     } else {
         if (loginBtn) loginBtn.style.display = 'block';
-        if (navCta) navCta.style.display = 'block';
         if (userInfoDiv) userInfoDiv.style.display = 'none';
     }
 }
@@ -404,7 +407,6 @@ async function login() {
         const response = await fetch(`${API_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
             body: JSON.stringify({ username, password })
         });
         
@@ -412,6 +414,8 @@ async function login() {
         
         if (data.success) {
             currentUser = data.user;
+            authToken = data.token;
+            localStorage.setItem('authToken', authToken);
             closeLoginModal();
             location.reload();
         } else {
@@ -455,18 +459,23 @@ async function register() {
 }
 
 async function logout() {
-    await fetch(`${API_URL}/auth/logout`, {
-        method: 'POST',
-        credentials: 'include'
-    });
+    localStorage.removeItem('authToken');
     currentUser = null;
+    authToken = null;
     location.reload();
+}
+
+function getAuthHeaders() {
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+    };
 }
 
 async function loadUserOrders() {
     try {
         const response = await fetch(`${API_URL}/bookings/user`, {
-            credentials: 'include'
+            headers: getAuthHeaders()
         });
         const data = await response.json();
         
@@ -488,19 +497,37 @@ async function loadUserOrders() {
 async function loadAdminOrders() {
     try {
         const response = await fetch(`${API_URL}/admin/bookings`, {
-            credentials: 'include'
+            headers: getAuthHeaders()
         });
         const data = await response.json();
         
         if (data.success && data.bookings.length > 0) {
             let html = '<table><thead><tr><th>Order ID</th><th>Customer</th><th>Garment</th><th>Status</th><th>Update</th></tr></thead><tbody>';
             data.bookings.forEach(booking => {
-                html += `<tr><td>${booking.order_id}</td><td>${booking.customer_name}</td><td>${booking.garment_type}</td><td><strong>${booking.status}</strong></td>
-                <td><select id="status-${booking.order_id}" class="status-select"><option value="Booking Confirmed">Booking Confirmed</option><option value="Tailor Assigned">Tailor Assigned</option><option value="Measurements Taken">Measurements Taken</option><option value="Fabric Picked Up">Fabric Picked Up</option><option value="Stitching in Progress">Stitching in Progress</option><option value="Quality Check">Quality Check</option><option value="Ready for Delivery">Ready for Delivery</option><option value="Out for Delivery">Out for Delivery</option><option value="Delivered">Delivered</option></select>
-                <input type="date" id="date-${booking.order_id}" placeholder="Expected date"><button class="update-status-btn" onclick="updateOrderStatus('${booking.order_id}')">Update</button></td></tr>`;
+                html += `<tr>
+                    <td>${booking.order_id}</td>
+                    <td>${booking.customer_name}</td>
+                    <td>${booking.garment_type}</td>
+                    <td><strong>${booking.status}</strong></td>
+                    <td>
+                        <select id="status-${booking.order_id}" class="status-select">
+                            <option value="Booking Confirmed">Booking Confirmed</option>
+                            <option value="Tailor Assigned">Tailor Assigned</option>
+                            <option value="Measurements Taken">Measurements Taken</option>
+                            <option value="Fabric Picked Up">Fabric Picked Up</option>
+                            <option value="Stitching in Progress">Stitching in Progress</option>
+                            <option value="Quality Check">Quality Check</option>
+                            <option value="Ready for Delivery">Ready for Delivery</option>
+                            <option value="Out for Delivery">Out for Delivery</option>
+                            <option value="Delivered">Delivered</option>
+                        </select>
+                        <button class="update-status-btn" onclick="updateOrderStatus('${booking.order_id}')">Update</button>
+                    </td>
+                </tr>`;
             });
             html += '</tbody></table>';
             document.getElementById('adminOrdersList').innerHTML = html;
+            
             data.bookings.forEach(booking => {
                 const select = document.getElementById(`status-${booking.order_id}`);
                 if(select) select.value = booking.status;
@@ -515,13 +542,12 @@ async function loadAdminOrders() {
 
 async function updateOrderStatus(orderId) {
     const status = document.getElementById(`status-${orderId}`).value;
-    const expectedDate = document.getElementById(`date-${orderId}`).value;
+    const expectedDate = document.getElementById(`date-${orderId}`)?.value || '';
     
     try {
         const response = await fetch(`${API_URL}/admin/bookings/${orderId}/status`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
+            headers: getAuthHeaders(),
             body: JSON.stringify({ status, expected_completion_date: expectedDate, notes: `Status updated to ${status}` })
         });
         
@@ -556,7 +582,7 @@ async function submitBooking(e) {
         service_type: document.querySelector('#page-booking .toggle-btn.selected')?.innerText || 'Both',
         preferred_date: document.getElementById('bookingDate')?.value,
         time_slot: document.querySelector('#page-booking .slot.selected')?.innerText || '10:00 AM',
-        special_instructions: document.getElementById('specialInstructions')?.value || '',
+        special_instructions: '',
         payment_method: 'UPI / Online'
     };
     
@@ -568,8 +594,7 @@ async function submitBooking(e) {
     try {
         const response = await fetch(`${API_URL}/bookings`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
+            headers: getAuthHeaders(),
             body: JSON.stringify(formData)
         });
         
@@ -598,7 +623,7 @@ async function trackOrder() {
     
     try {
         const response = await fetch(`${API_URL}/bookings/${orderId}`, {
-            credentials: 'include'
+            headers: getAuthHeaders()
         });
         const data = await response.json();
         
