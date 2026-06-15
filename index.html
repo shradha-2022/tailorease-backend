@@ -345,56 +345,103 @@
 <div id="userDashboard" style="display:none;"><section class="section"><div class="section-header"><div class="eyebrow">My Orders</div><h2 class="section-title">Your <span class="grad-text">Bookings</span></h2></div><div id="userOrdersList"></div></section></div>
 
 <script>
-const API_URL = 'https://backenddeploy-43wt.onrender.com/api';  // FIXED URL
+const API_URL = 'https://backenddeploy-43wt.onrender.com/api';
 let currentUser = null;
 let authToken = null;
 
 // Check if user is logged in on page load
 async function checkAuth() {
     const token = localStorage.getItem('authToken');
-    if (!token) return;
+    if (!token) {
+        updateUIForLoggedInUser();
+        return;
+    }
     
     try {
         const response = await fetch(`${API_URL}/auth/me`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
+        
         if (response.ok) {
             const data = await response.json();
             currentUser = data.user;
             authToken = token;
             updateUIForLoggedInUser();
+            
+            // Load user-specific data
+            if (currentUser.role === 'admin') {
+                document.getElementById('adminDashboard').style.display = 'block';
+                document.getElementById('userDashboard').style.display = 'none';
+                loadAdminOrders();
+            } else {
+                document.getElementById('adminDashboard').style.display = 'none';
+                document.getElementById('userDashboard').style.display = 'block';
+                loadUserOrders();
+            }
         } else {
             localStorage.removeItem('authToken');
+            currentUser = null;
+            updateUIForLoggedInUser();
         }
     } catch (error) {
         console.log('Not logged in');
+        currentUser = null;
+        updateUIForLoggedInUser();
     }
 }
 
 function updateUIForLoggedInUser() {
     const loginBtn = document.getElementById('login-nav-btn');
     const userInfoDiv = document.getElementById('user-info-nav');
+    const navLinks = document.querySelector('.nav-links');
     
     if (currentUser) {
         if (loginBtn) loginBtn.style.display = 'none';
         if (userInfoDiv) {
             userInfoDiv.style.display = 'flex';
+            const roleBadge = currentUser.role === 'admin' ? '👑 Admin' : '👤 User';
             userInfoDiv.innerHTML = `
-                <span style="color: var(--purple); font-weight: 600;">👤 ${currentUser.full_name || currentUser.username}</span>
+                <span style="color: var(--purple); font-weight: 600;">
+                    ${roleBadge} ${currentUser.full_name || currentUser.username}
+                </span>
                 <button onclick="logout()" style="background: none; border: 1px solid var(--border); padding: 0.5rem 1rem; border-radius: 50px; cursor: pointer;">Logout</button>
             `;
         }
         
-        if (currentUser.role === 'admin') {
-            document.getElementById('adminDashboard').style.display = 'block';
-            loadAdminOrders();
-        } else {
-            document.getElementById('userDashboard').style.display = 'block';
-            loadUserOrders();
+        // Update nav CTA text based on role
+        const navCta = document.querySelector('.nav-cta');
+        if (navCta) {
+            if (currentUser.role === 'admin') {
+                navCta.textContent = '📊 Admin Panel';
+                navCta.onclick = () => showAdminPanel();
+            } else {
+                navCta.textContent = 'Book a Tailor →';
+                navCta.onclick = () => showSection('booking');
+            }
         }
     } else {
         if (loginBtn) loginBtn.style.display = 'block';
         if (userInfoDiv) userInfoDiv.style.display = 'none';
+        document.getElementById('adminDashboard').style.display = 'none';
+        document.getElementById('userDashboard').style.display = 'none';
+        
+        const navCta = document.querySelector('.nav-cta');
+        if (navCta) {
+            navCta.textContent = 'Book a Tailor →';
+            navCta.onclick = () => showLoginModal();
+        }
+    }
+}
+
+function showAdminPanel() {
+    if (currentUser && currentUser.role === 'admin') {
+        showSection('services');
+        document.getElementById('adminDashboard').style.display = 'block';
+        document.getElementById('userDashboard').style.display = 'none';
+        loadAdminOrders();
+    } else {
+        alert('Admin access required');
+        showLoginModal();
     }
 }
 
@@ -402,6 +449,12 @@ async function login() {
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
     const errorDiv = document.getElementById('loginError');
+    
+    if (!username || !password) {
+        errorDiv.textContent = 'Please enter username and password';
+        errorDiv.style.display = 'block';
+        return;
+    }
     
     try {
         const response = await fetch(`${API_URL}/auth/login`, {
@@ -417,13 +470,21 @@ async function login() {
             authToken = data.token;
             localStorage.setItem('authToken', authToken);
             closeLoginModal();
-            location.reload();
+            
+            // Show success message based on role
+            if (currentUser.role === 'admin') {
+                alert(`Welcome Admin ${currentUser.full_name || currentUser.username}! You can manage all orders.`);
+            } else {
+                alert(`Welcome ${currentUser.full_name || currentUser.username}! You can now book tailoring services.`);
+            }
+            
+            location.reload(); // Refresh to update UI
         } else {
-            errorDiv.textContent = data.error;
+            errorDiv.textContent = data.error || 'Login failed';
             errorDiv.style.display = 'block';
         }
     } catch (error) {
-        errorDiv.textContent = 'Login failed. Please try again.';
+        errorDiv.textContent = 'Cannot connect to server. Please try again.';
         errorDiv.style.display = 'block';
     }
 }
@@ -434,6 +495,12 @@ async function register() {
     const email = document.getElementById('regEmail').value;
     const password = document.getElementById('regPassword').value;
     const errorDiv = document.getElementById('registerError');
+    
+    if (!username || !password) {
+        errorDiv.textContent = 'Username and password required';
+        errorDiv.style.display = 'block';
+        return;
+    }
     
     try {
         const response = await fetch(`${API_URL}/auth/register`, {
@@ -462,13 +529,15 @@ async function logout() {
     localStorage.removeItem('authToken');
     currentUser = null;
     authToken = null;
+    alert('Logged out successfully');
     location.reload();
 }
 
 function getAuthHeaders() {
+    const token = localStorage.getItem('authToken');
     return {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        'Authorization': `Bearer ${token}`
     };
 }
 
@@ -479,18 +548,36 @@ async function loadUserOrders() {
         });
         const data = await response.json();
         
-        if (data.success && data.bookings.length > 0) {
+        const container = document.getElementById('userOrdersList');
+        
+        if (data.success && data.bookings && data.bookings.length > 0) {
             let html = '<div class="reviews-grid">';
             data.bookings.forEach(booking => {
-                html += `<div class="review-card"><h3>Order: ${booking.order_id}</h3><p><strong>Garment:</strong> ${booking.garment_type}</p><p><strong>Status:</strong> <span style="color:#E8538A;">${booking.status}</span></p><p><strong>Date:</strong> ${booking.preferred_date}</p><button class="btn-outline" onclick="trackOrderById('${booking.order_id}')">Track Order →</button></div>`;
+                html += `
+                    <div class="review-card">
+                        <h3>Order: ${booking.order_id}</h3>
+                        <p><strong>Garment:</strong> ${booking.garment_type}</p>
+                        <p><strong>Service:</strong> ${booking.service_type}</p>
+                        <p><strong>Status:</strong> <span style="color:#E8538A; font-weight:bold;">${booking.status}</span></p>
+                        <p><strong>Date:</strong> ${booking.preferred_date}</p>
+                        <p><strong>Time:</strong> ${booking.time_slot}</p>
+                        <button class="btn-outline" onclick="trackOrderById('${booking.order_id}')">Track Order →</button>
+                    </div>
+                `;
             });
             html += '</div>';
-            document.getElementById('userOrdersList').innerHTML = html;
+            container.innerHTML = html;
         } else {
-            document.getElementById('userOrdersList').innerHTML = '<p>No orders yet. <a href="#" onclick="showSection(\'booking\')">Book your first order!</a></p>';
+            container.innerHTML = `
+                <div style="text-align: center; padding: 3rem;">
+                    <p>📦 No orders yet.</p>
+                    <button class="btn-primary" onclick="showSection('booking')" style="margin-top: 1rem;">Book Your First Order →</button>
+                </div>
+            `;
         }
     } catch (error) {
         console.error('Error loading orders:', error);
+        document.getElementById('userOrdersList').innerHTML = '<p style="color:red;">Error loading orders. Please login again.</p>';
     }
 }
 
@@ -501,62 +588,95 @@ async function loadAdminOrders() {
         });
         const data = await response.json();
         
-        if (data.success && data.bookings.length > 0) {
-            let html = '<table><thead><tr><th>Order ID</th><th>Customer</th><th>Garment</th><th>Status</th><th>Update</th></tr></thead><tbody>';
-            data.bookings.forEach(booking => {
-                html += `<tr>
-                    <td>${booking.order_id}</td>
-                    <td>${booking.customer_name}</td>
-                    <td>${booking.garment_type}</td>
-                    <td><strong>${booking.status}</strong></td>
-                    <td>
-                        <select id="status-${booking.order_id}" class="status-select">
-                            <option value="Booking Confirmed">Booking Confirmed</option>
-                            <option value="Tailor Assigned">Tailor Assigned</option>
-                            <option value="Measurements Taken">Measurements Taken</option>
-                            <option value="Fabric Picked Up">Fabric Picked Up</option>
-                            <option value="Stitching in Progress">Stitching in Progress</option>
-                            <option value="Quality Check">Quality Check</option>
-                            <option value="Ready for Delivery">Ready for Delivery</option>
-                            <option value="Out for Delivery">Out for Delivery</option>
-                            <option value="Delivered">Delivered</option>
-                        </select>
-                        <button class="update-status-btn" onclick="updateOrderStatus('${booking.order_id}')">Update</button>
-                    </td>
-                </tr>`;
-            });
-            html += '</tbody></table>';
-            document.getElementById('adminOrdersList').innerHTML = html;
+        const container = document.getElementById('adminOrdersList');
+        
+        if (data.success && data.bookings && data.bookings.length > 0) {
+            let html = `
+                <table style="width:100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: var(--grad-main); color: white;">
+                            <th style="padding: 12px;">Order ID</th>
+                            <th style="padding: 12px;">Customer</th>
+                            <th style="padding: 12px;">Garment</th>
+                            <th style="padding: 12px;">Status</th>
+                            <th style="padding: 12px;">Update</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
             
+            data.bookings.forEach(booking => {
+                html += `
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <td style="padding: 12px;"><strong>${booking.order_id}</strong></td>
+                        <td style="padding: 12px;">${booking.customer_name}<br><small>${booking.phone}</small></td>
+                        <td style="padding: 12px;">${booking.garment_type}</td>
+                        <td style="padding: 12px;">
+                            <span style="background: ${booking.status === 'Delivered' ? '#4CAF50' : '#E8538A'}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem;">
+                                ${booking.status}
+                            </span>
+                        </td>
+                        <td style="padding: 12px;">
+                            <select id="status-${booking.order_id}" class="status-select" style="padding: 6px; margin-right: 8px;">
+                                <option value="Booking Confirmed">Booking Confirmed</option>
+                                <option value="Tailor Assigned">Tailor Assigned</option>
+                                <option value="Measurements Taken">Measurements Taken</option>
+                                <option value="Fabric Picked Up">Fabric Picked Up</option>
+                                <option value="Stitching in Progress">Stitching in Progress</option>
+                                <option value="Quality Check">Quality Check</option>
+                                <option value="Ready for Delivery">Ready for Delivery</option>
+                                <option value="Out for Delivery">Out for Delivery</option>
+                                <option value="Delivered">Delivered</option>
+                            </select>
+                            <button class="update-status-btn" onclick="updateOrderStatus('${booking.order_id}')" style="background: var(--grad-main); color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer;">
+                                Update
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+            
+            // Set current status in dropdowns
             data.bookings.forEach(booking => {
                 const select = document.getElementById(`status-${booking.order_id}`);
                 if(select) select.value = booking.status;
             });
         } else {
-            document.getElementById('adminOrdersList').innerHTML = '<p>No orders yet.</p>';
+            container.innerHTML = '<p style="text-align: center; padding: 2rem;">No orders in the system yet.</p>';
         }
     } catch (error) {
         console.error('Error loading admin orders:', error);
+        document.getElementById('adminOrdersList').innerHTML = '<p style="color:red;">Error loading orders. Please ensure you are logged in as admin.</p>';
     }
 }
 
 async function updateOrderStatus(orderId) {
     const status = document.getElementById(`status-${orderId}`).value;
-    const expectedDate = document.getElementById(`date-${orderId}`)?.value || '';
+    
+    if (!confirm(`Update order ${orderId} status to "${status}"?`)) {
+        return;
+    }
     
     try {
         const response = await fetch(`${API_URL}/admin/bookings/${orderId}/status`, {
             method: 'PUT',
             headers: getAuthHeaders(),
-            body: JSON.stringify({ status, expected_completion_date: expectedDate, notes: `Status updated to ${status}` })
+            body: JSON.stringify({ 
+                status, 
+                expected_completion_date: '',
+                notes: `Status updated to ${status} by admin`
+            })
         });
         
         const data = await response.json();
         if (data.success) {
-            alert('Order status updated!');
-            loadAdminOrders();
+            alert('✅ Order status updated successfully!');
+            loadAdminOrders(); // Refresh the list
         } else {
-            alert('Update failed: ' + data.error);
+            alert('❌ Update failed: ' + data.error);
         }
     } catch (error) {
         alert('Error updating status');
@@ -586,7 +706,8 @@ async function submitBooking(e) {
         payment_method: 'UPI / Online'
     };
     
-    if (!formData.customer_name || !formData.phone || !formData.city || !formData.address) {
+    // Validation
+    if (!formData.customer_name || !formData.phone || !formData.city || !formData.address || !formData.preferred_date) {
         alert('Please fill all required fields');
         return;
     }
@@ -604,8 +725,16 @@ async function submitBooking(e) {
             document.getElementById('modalOrderId').textContent = result.order_id;
             document.getElementById('booking-modal').classList.add('open');
             document.getElementById('booking-form')?.reset();
+            
+            // Reset date picker to today
             const dateInput = document.getElementById('bookingDate');
             if(dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+            
+            // Reset slot selection
+            document.querySelectorAll('#slotGrid .slot').forEach(s => s.classList.remove('selected'));
+            document.querySelector('#slotGrid .slot')?.classList.add('selected');
+            
+            alert(`✅ Booking confirmed! Your Order ID: ${result.order_id}\nYou can track it in "Track Order" section.`);
         } else {
             alert('Booking failed: ' + result.error);
         }
@@ -618,6 +747,12 @@ async function trackOrder() {
     const orderId = document.getElementById('order-input').value.trim();
     if (!orderId) {
         alert('Please enter an Order ID');
+        return;
+    }
+    
+    if (!currentUser) {
+        alert('Please login to track orders');
+        showLoginModal();
         return;
     }
     
@@ -637,26 +772,39 @@ async function trackOrder() {
             data.timeline.forEach((item, index) => {
                 let dotClass = 'dot-pending';
                 let icon = '○';
-                if (item.done) { dotClass = 'dot-done'; icon = '✓'; }
-                else if (item.active) { dotClass = 'dot-active'; icon = '●'; }
+                if (item.done) { 
+                    dotClass = 'dot-done'; 
+                    icon = '✓'; 
+                } else if (item.active) { 
+                    dotClass = 'dot-active'; 
+                    icon = '●'; 
+                }
                 
                 const div = document.createElement('div');
                 div.className = 'timeline-item';
-                div.innerHTML = `<div class="tl-dot ${dotClass}">${icon}</div>${index !== data.timeline.length - 1 ? '<div class="tl-line"></div>' : ''}<div class="tl-info"><div class="tl-label ${item.done ? 'done' : (item.active ? 'active' : '')}">${item.label}</div><div class="tl-time">${item.time || 'Pending'}</div></div>`;
+                div.innerHTML = `
+                    <div class="tl-dot ${dotClass}">${icon}</div>
+                    ${index !== data.timeline.length - 1 ? '<div class="tl-line"></div>' : ''}
+                    <div class="tl-info">
+                        <div class="tl-label ${item.done ? 'done' : (item.active ? 'active' : '')}">${item.label}</div>
+                        <div class="tl-time">${item.time ? new Date(item.time).toLocaleString() : '⏳ Pending'}</div>
+                        ${item.notes ? `<div class="tl-notes" style="font-size: 0.8rem; color: var(--muted); margin-top: 4px;">📝 ${item.notes}</div>` : ''}
+                    </div>
+                `;
                 timelineContainer.appendChild(div);
             });
         } else {
-            alert('Order not found: ' + data.error);
+            alert('Order not found: ' + (data.error || 'Invalid order ID'));
         }
     } catch (error) {
-        alert('Error tracking order');
+        alert('Error tracking order. Please make sure you are logged in and the order ID is correct.');
     }
 }
 
 async function trackOrderById(orderId) {
     document.getElementById('order-input').value = orderId;
     showSection('tracking');
-    await trackOrder();
+    setTimeout(() => trackOrder(), 100);
 }
 
 async function submitContact(e) {
@@ -668,6 +816,11 @@ async function submitContact(e) {
         message: document.getElementById('contactMsg')?.value
     };
     
+    if (!formData.name || !formData.message) {
+        alert('Please enter your name and message');
+        return;
+    }
+    
     try {
         const response = await fetch(`${API_URL}/contact`, {
             method: 'POST',
@@ -677,8 +830,11 @@ async function submitContact(e) {
         
         const result = await response.json();
         if (result.success) {
-            alert('Message sent successfully!');
-            document.getElementById('contact-form')?.reset();
+            alert('✅ Message sent successfully! We\'ll get back to you soon.');
+            document.getElementById('contactName').value = '';
+            document.getElementById('contactPhone').value = '';
+            document.getElementById('contactEmail').value = '';
+            document.getElementById('contactMsg').value = '';
         } else {
             alert('Failed to send message');
         }
@@ -694,21 +850,83 @@ function showSection(s) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function showLoginModal() { document.getElementById('loginModal').classList.add('active'); }
-function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
-function showRegister() { closeLoginModal(); document.getElementById('registerModal').classList.add('active'); }
-function closeRegisterModal() { document.getElementById('registerModal').classList.remove('active'); }
-function showLogin() { closeRegisterModal(); showLoginModal(); }
-function closeModal() { document.getElementById('booking-modal').classList.remove('open'); }
-function toggleService(el) { el.parentElement.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('selected')); el.classList.add('selected'); }
-function selectSlot(el) { el.closest('.slot-grid').querySelectorAll('.slot').forEach(s => s.classList.remove('selected')); el.classList.add('selected'); }
-function toggleMobileMenu() { const links = document.querySelector('.nav-links'); if (links.style.display === 'flex') links.style.display = ''; else links.style.cssText = 'display:flex; flex-direction:column; position:absolute; top:72px; left:0; right:0; background:white; padding:1.5rem; gap:1rem; z-index:999;'; }
+function showLoginModal() { 
+    document.getElementById('loginModal').classList.add('active');
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('loginError').style.display = 'none';
+}
 
-// Initialize
-const dateInput = document.getElementById('bookingDate');
-if (dateInput) { dateInput.min = new Date().toISOString().split('T')[0]; dateInput.value = dateInput.min; }
-document.querySelectorAll('#slotGrid .slot')[0]?.classList.add('selected');
-checkAuth();
+function closeLoginModal() { 
+    document.getElementById('loginModal').classList.remove('active');
+}
+
+function showRegister() { 
+    closeLoginModal(); 
+    document.getElementById('registerModal').classList.add('active');
+}
+
+function closeRegisterModal() { 
+    document.getElementById('registerModal').classList.remove('active');
+}
+
+function showLogin() { 
+    closeRegisterModal(); 
+    showLoginModal();
+}
+
+function closeModal() { 
+    document.getElementById('booking-modal').classList.remove('open');
+}
+
+function toggleService(el) { 
+    el.parentElement.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('selected')); 
+    el.classList.add('selected'); 
+}
+
+function selectSlot(el) { 
+    el.closest('.slot-grid').querySelectorAll('.slot').forEach(s => s.classList.remove('selected')); 
+    el.classList.add('selected'); 
+}
+
+function toggleMobileMenu() { 
+    const links = document.querySelector('.nav-links'); 
+    if (links.style.display === 'flex') {
+        links.style.display = '';
+    } else {
+        links.style.cssText = 'display:flex; flex-direction:column; position:absolute; top:72px; left:0; right:0; background:white; padding:1.5rem; gap:1rem; z-index:999; box-shadow: 0 10px 30px rgba(0,0,0,0.1);';
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+    // Set default date for booking
+    const dateInput = document.getElementById('bookingDate');
+    if (dateInput) { 
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.min = today;
+        dateInput.value = today;
+    }
+    
+    // Set default slot selection
+    document.querySelectorAll('#slotGrid .slot')[0]?.classList.add('selected');
+    
+    // Check authentication
+    checkAuth();
+    
+    // Load stats
+    fetch(`${API_URL}/stats`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const statElement = document.querySelector('.hero-stat-num');
+                if (statElement && data.base_customers) {
+                    statElement.textContent = data.base_customers + '+';
+                }
+            }
+        })
+        .catch(err => console.log('Stats error:', err));
+});
 </script>
 </body>
 </html>
