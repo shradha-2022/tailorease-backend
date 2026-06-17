@@ -14,37 +14,10 @@ load_dotenv()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a-very-secret-key-change-this')
 
-# ✅ FIXED CORS CONFIGURATION - Allow Netlify
-CORS(app,
-     origins=[
-         "https://relaxed-dodol-6a31b9.netlify.app",
-         "http://localhost:5000",
-         "http://localhost:5500"
-     ],
-     supports_credentials=True,
-     allow_headers=["Content-Type", "Authorization", "X-Requested-With", "Accept"],
-     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-     expose_headers=["Content-Type", "Authorization"])
+# ✅ SIMPLEST AND MOST RELIABLE CORS CONFIGURATION
+CORS(app, resources={r"/*": {"origins": "*"}})
 
-# ✅ Handle preflight requests globally
-@app.after_request
-def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', 'https://relaxed-dodol-6a31b9.netlify.app')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With,Accept')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    return response
-
-# ✅ Explicitly handle OPTIONS for all routes
-@app.route('/api/<path:path>', methods=['OPTIONS'])
-def handle_options(path):
-    return '', 200
-
-@app.route('/api', methods=['OPTIONS'])
-def handle_options_root():
-    return '', 200
-
-# Use /tmp/ for SQLite on Render (ephemeral but works for free tier)
+# Use /tmp/ for SQLite on Render
 DATABASE = '/tmp/tailorease.db'
 
 def init_db():
@@ -113,24 +86,24 @@ def init_db():
     ''')
     conn.commit()
 
-    # --- Create Default Users (admin / testuser) ---
+    # Create default users
     cursor.execute('SELECT COUNT(*) FROM users WHERE role = "admin"')
     if cursor.fetchone()[0] == 0:
         admin_password = hashlib.sha256('admin123'.encode()).hexdigest()
         cursor.execute('INSERT INTO users (username, password, email, full_name, role) VALUES (?, ?, ?, ?, ?)',
                        ('admin', admin_password, 'admin@tailorease.com', 'Administrator', 'admin'))
-        print("✅ Default admin created - Username: admin, Password: admin123")
+        print("✅ Admin created - admin/admin123")
 
     cursor.execute('SELECT COUNT(*) FROM users WHERE username = "testuser"')
     if cursor.fetchone()[0] == 0:
         user_password = hashlib.sha256('user123'.encode()).hexdigest()
         cursor.execute('INSERT INTO users (username, password, email, full_name, role) VALUES (?, ?, ?, ?, ?)',
                        ('testuser', user_password, 'user@example.com', 'Test User', 'user'))
-        print("✅ Default user created - Username: testuser, Password: user123")
+        print("✅ User created - testuser/user123")
 
     conn.commit()
     conn.close()
-    print("✅ Database initialized successfully!")
+    print("✅ Database initialized!")
 
 def get_db():
     conn = sqlite3.connect(DATABASE)
@@ -142,14 +115,14 @@ def token_required(f):
     def decorated(*args, **kwargs):
         token = request.headers.get('Authorization')
         if not token:
-            return jsonify({'success': False, 'error': 'Token is missing'}), 401
+            return jsonify({'success': False, 'error': 'Token missing'}), 401
         try:
             if token.startswith('Bearer '):
                 token = token[7:]
             data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
             current_user = data['user']
-        except Exception as e:
-            return jsonify({'success': False, 'error': 'Token is invalid'}), 401
+        except:
+            return jsonify({'success': False, 'error': 'Invalid token'}), 401
         return f(current_user, *args, **kwargs)
     return decorated
 
@@ -157,22 +130,19 @@ def token_required(f):
 
 @app.route('/', methods=['GET'])
 def home():
-    return jsonify({'message': 'TailorEase API is running!', 'status': 'active'})
+    return jsonify({'message': 'TailorEase API running!', 'status': 'active'})
 
-@app.route('/api/health', methods=['GET', 'OPTIONS'])
+@app.route('/api/health', methods=['GET'])
 def health_check():
-    if request.method == 'OPTIONS':
-        return '', 200
     return jsonify({'status': 'ok', 'message': 'TailorEase API is running'}), 200
 
-@app.route('/api/auth/login', methods=['POST', 'OPTIONS'])
+@app.route('/api/auth/login', methods=['POST'])
 def login():
-    if request.method == 'OPTIONS':
-        return '', 200
     try:
         data = request.json
         username = data.get('username')
         password = data.get('password')
+        
         if not username or not password:
             return jsonify({'success': False, 'error': 'Username and password required'}), 400
 
@@ -185,28 +155,37 @@ def login():
 
         if user:
             token = jwt.encode({
-                'user': {'id': user['id'], 'username': user['username'], 'full_name': user['full_name'], 'role': user['role']},
+                'user': {
+                    'id': user['id'], 
+                    'username': user['username'], 
+                    'full_name': user['full_name'], 
+                    'role': user['role']
+                },
                 'exp': datetime.utcnow() + timedelta(days=7)
             }, app.config['SECRET_KEY'], algorithm='HS256')
 
             return jsonify({
                 'success': True,
                 'token': token,
-                'user': {'id': user['id'], 'username': user['username'], 'full_name': user['full_name'], 'role': user['role']}
+                'user': {
+                    'id': user['id'],
+                    'username': user['username'],
+                    'full_name': user['full_name'],
+                    'role': user['role']
+                }
             }), 200
         else:
             return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/auth/register', methods=['POST', 'OPTIONS'])
+@app.route('/api/auth/register', methods=['POST'])
 def register():
-    if request.method == 'OPTIONS': 
-        return '', 200
     try:
         data = request.json
         username = data.get('username')
         password = data.get('password')
+        
         if not username or not password:
             return jsonify({'success': False, 'error': 'Username and password required'}), 400
 
@@ -225,31 +204,60 @@ def register():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/bookings', methods=['POST', 'OPTIONS'])
+@app.route('/api/bookings', methods=['POST'])
 @token_required
 def create_booking(current_user):
-    if request.method == 'OPTIONS': 
-        return '', 200
     try:
         data = request.json
         order_id = f"TE-{datetime.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
+        
         conn = get_db()
         cursor = conn.cursor()
         cursor.execute('''
-            INSERT INTO bookings (order_id, user_id, customer_name, phone, email, city, address, garment_type, service_type, preferred_date, time_slot, special_instructions, payment_method, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (order_id, current_user['id'], data.get('customer_name'), data.get('phone'), data.get('email', ''), data.get('city'), data.get('address'), data.get('garment_type'), data.get('service_type'), data.get('preferred_date'), data.get('time_slot'), data.get('special_instructions', ''), data.get('payment_method', 'UPI / Online'), 'Booking Confirmed'))
+            INSERT INTO bookings (
+                order_id, user_id, customer_name, phone, email, city, address, 
+                garment_type, service_type, preferred_date, time_slot, 
+                special_instructions, payment_method, status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            order_id, 
+            current_user['id'], 
+            data.get('customer_name'), 
+            data.get('phone'), 
+            data.get('email', ''), 
+            data.get('city'), 
+            data.get('address'), 
+            data.get('garment_type'), 
+            data.get('service_type'), 
+            data.get('preferred_date'), 
+            data.get('time_slot'), 
+            data.get('special_instructions', ''), 
+            data.get('payment_method', 'UPI / Online'), 
+            'Booking Confirmed'
+        ))
+        
+        # Add initial statuses
+        statuses = ['Booking Confirmed', 'Tailor Assigned', 'Measurements Taken', 'Fabric Picked Up', 
+                   'Stitching in Progress', 'Quality Check', 'Ready for Delivery', 'Out for Delivery', 'Delivered']
+        
+        for i, status in enumerate(statuses):
+            is_done = 1 if i == 0 else 0
+            status_time = datetime.now().isoformat() if i == 0 else None
+            cursor.execute('''
+                INSERT INTO order_status (order_id, status_label, status_time, is_completed)
+                VALUES (?, ?, ?, ?)
+            ''', (order_id, status, status_time, is_done))
+        
         conn.commit()
         conn.close()
+        
         return jsonify({'success': True, 'order_id': order_id}), 201
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/bookings/user', methods=['GET', 'OPTIONS'])
+@app.route('/api/bookings/user', methods=['GET'])
 @token_required
 def get_user_bookings(current_user):
-    if request.method == 'OPTIONS': 
-        return '', 200
     try:
         conn = get_db()
         cursor = conn.cursor()
@@ -260,26 +268,27 @@ def get_user_bookings(current_user):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/bookings/<order_id>', methods=['GET', 'OPTIONS'])
+@app.route('/api/bookings/<order_id>', methods=['GET'])
 @token_required
 def get_booking(current_user, order_id):
-    if request.method == 'OPTIONS': 
-        return '', 200
     try:
         conn = get_db()
         cursor = conn.cursor()
+        
         if current_user.get('role') == 'admin':
             cursor.execute('SELECT * FROM bookings WHERE order_id = ?', (order_id,))
         else:
             cursor.execute('SELECT * FROM bookings WHERE order_id = ? AND user_id = ?', (order_id, current_user['id']))
+        
         booking = cursor.fetchone()
         if not booking:
             conn.close()
             return jsonify({'success': False, 'error': 'Order not found'}), 404
         
-        # Get timeline (status history)
+        # Get timeline
         cursor.execute('SELECT * FROM order_status WHERE order_id = ? ORDER BY id', (order_id,))
         statuses = cursor.fetchall()
+        
         timeline = []
         active_found = False
         for status in statuses:
@@ -301,13 +310,12 @@ def get_booking(current_user, order_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/admin/bookings', methods=['GET', 'OPTIONS'])
+@app.route('/api/admin/bookings', methods=['GET'])
 @token_required
 def admin_get_all_bookings(current_user):
-    if request.method == 'OPTIONS': 
-        return '', 200
     if current_user.get('role') != 'admin':
         return jsonify({'success': False, 'error': 'Admin access required'}), 403
+    
     try:
         conn = get_db()
         cursor = conn.cursor()
@@ -318,25 +326,23 @@ def admin_get_all_bookings(current_user):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/admin/bookings/<order_id>/status', methods=['PUT', 'OPTIONS'])
+@app.route('/api/admin/bookings/<order_id>/status', methods=['PUT'])
 @token_required
 def admin_update_status(current_user, order_id):
-    if request.method == 'OPTIONS': 
-        return '', 200
     if current_user.get('role') != 'admin':
         return jsonify({'success': False, 'error': 'Admin access required'}), 403
+    
     try:
         data = request.json
         new_status = data.get('status')
         notes = data.get('notes', '')
+        
         conn = get_db()
         cursor = conn.cursor()
         
-        # Update booking status
         cursor.execute('UPDATE bookings SET status = ?, updated_at = ? WHERE order_id = ?', 
                       (new_status, datetime.now().isoformat(), order_id))
         
-        # Update order status timeline
         cursor.execute('''
             UPDATE order_status 
             SET is_completed = 1, status_time = ?, updated_by = ?, notes = ? 
@@ -349,10 +355,8 @@ def admin_update_status(current_user, order_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/contact', methods=['POST', 'OPTIONS'])
+@app.route('/api/contact', methods=['POST'])
 def submit_contact():
-    if request.method == 'OPTIONS': 
-        return '', 200
     try:
         data = request.json
         conn = get_db()
@@ -361,14 +365,12 @@ def submit_contact():
                        (data['name'], data.get('phone', ''), data.get('email', ''), data['message']))
         conn.commit()
         conn.close()
-        return jsonify({'success': True, 'message': 'Message sent successfully'}), 201
+        return jsonify({'success': True, 'message': 'Message sent'}), 201
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/stats', methods=['GET', 'OPTIONS'])
+@app.route('/api/stats', methods=['GET'])
 def get_stats():
-    if request.method == 'OPTIONS': 
-        return '', 200
     try:
         conn = get_db()
         cursor = conn.cursor()
