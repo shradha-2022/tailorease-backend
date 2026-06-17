@@ -14,7 +14,7 @@ load_dotenv()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a-very-secret-key-change-this')
 
-# Correct CORS for Netlify
+# ✅ FIXED CORS CONFIGURATION - Allow Netlify
 CORS(app,
      origins=[
          "https://relaxed-dodol-6a31b9.netlify.app",
@@ -22,8 +22,27 @@ CORS(app,
          "http://localhost:5500"
      ],
      supports_credentials=True,
-     allow_headers=["Content-Type", "Authorization"],
-     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+     allow_headers=["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+     expose_headers=["Content-Type", "Authorization"])
+
+# ✅ Handle preflight requests globally
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', 'https://relaxed-dodol-6a31b9.netlify.app')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With,Accept')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    return response
+
+# ✅ Explicitly handle OPTIONS for all routes
+@app.route('/api/<path:path>', methods=['OPTIONS'])
+def handle_options(path):
+    return '', 200
+
+@app.route('/api', methods=['OPTIONS'])
+def handle_options_root():
+    return '', 200
 
 # Use /tmp/ for SQLite on Render (ephemeral but works for free tier)
 DATABASE = '/tmp/tailorease.db'
@@ -182,10 +201,12 @@ def login():
 
 @app.route('/api/auth/register', methods=['POST', 'OPTIONS'])
 def register():
-    if request.method == 'OPTIONS': return '', 200
+    if request.method == 'OPTIONS': 
+        return '', 200
     try:
         data = request.json
-        username, password = data.get('username'), data.get('password')
+        username = data.get('username')
+        password = data.get('password')
         if not username or not password:
             return jsonify({'success': False, 'error': 'Username and password required'}), 400
 
@@ -207,7 +228,8 @@ def register():
 @app.route('/api/bookings', methods=['POST', 'OPTIONS'])
 @token_required
 def create_booking(current_user):
-    if request.method == 'OPTIONS': return '', 200
+    if request.method == 'OPTIONS': 
+        return '', 200
     try:
         data = request.json
         order_id = f"TE-{datetime.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
@@ -226,7 +248,8 @@ def create_booking(current_user):
 @app.route('/api/bookings/user', methods=['GET', 'OPTIONS'])
 @token_required
 def get_user_bookings(current_user):
-    if request.method == 'OPTIONS': return '', 200
+    if request.method == 'OPTIONS': 
+        return '', 200
     try:
         conn = get_db()
         cursor = conn.cursor()
@@ -240,7 +263,8 @@ def get_user_bookings(current_user):
 @app.route('/api/bookings/<order_id>', methods=['GET', 'OPTIONS'])
 @token_required
 def get_booking(current_user, order_id):
-    if request.method == 'OPTIONS': return '', 200
+    if request.method == 'OPTIONS': 
+        return '', 200
     try:
         conn = get_db()
         cursor = conn.cursor()
@@ -252,15 +276,36 @@ def get_booking(current_user, order_id):
         if not booking:
             conn.close()
             return jsonify({'success': False, 'error': 'Order not found'}), 404
+        
+        # Get timeline (status history)
+        cursor.execute('SELECT * FROM order_status WHERE order_id = ? ORDER BY id', (order_id,))
+        statuses = cursor.fetchall()
+        timeline = []
+        active_found = False
+        for status in statuses:
+            is_done = bool(status['is_completed'])
+            is_active = False
+            if not is_done and not active_found:
+                is_active = True
+                active_found = True
+            timeline.append({
+                'label': status['status_label'],
+                'time': status['status_time'],
+                'done': is_done,
+                'active': is_active,
+                'notes': status['notes'] if status['notes'] else None
+            })
+        
         conn.close()
-        return jsonify({'success': True, 'order': dict(booking)}), 200
+        return jsonify({'success': True, 'order': dict(booking), 'timeline': timeline}), 200
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/admin/bookings', methods=['GET', 'OPTIONS'])
 @token_required
 def admin_get_all_bookings(current_user):
-    if request.method == 'OPTIONS': return '', 200
+    if request.method == 'OPTIONS': 
+        return '', 200
     if current_user.get('role') != 'admin':
         return jsonify({'success': False, 'error': 'Admin access required'}), 403
     try:
@@ -276,15 +321,28 @@ def admin_get_all_bookings(current_user):
 @app.route('/api/admin/bookings/<order_id>/status', methods=['PUT', 'OPTIONS'])
 @token_required
 def admin_update_status(current_user, order_id):
-    if request.method == 'OPTIONS': return '', 200
+    if request.method == 'OPTIONS': 
+        return '', 200
     if current_user.get('role') != 'admin':
         return jsonify({'success': False, 'error': 'Admin access required'}), 403
     try:
         data = request.json
         new_status = data.get('status')
+        notes = data.get('notes', '')
         conn = get_db()
         cursor = conn.cursor()
-        cursor.execute('UPDATE bookings SET status = ?, updated_at = ? WHERE order_id = ?', (new_status, datetime.now().isoformat(), order_id))
+        
+        # Update booking status
+        cursor.execute('UPDATE bookings SET status = ?, updated_at = ? WHERE order_id = ?', 
+                      (new_status, datetime.now().isoformat(), order_id))
+        
+        # Update order status timeline
+        cursor.execute('''
+            UPDATE order_status 
+            SET is_completed = 1, status_time = ?, updated_by = ?, notes = ? 
+            WHERE order_id = ? AND status_label = ?
+        ''', (datetime.now().isoformat(), current_user['username'], notes, order_id, new_status))
+        
         conn.commit()
         conn.close()
         return jsonify({'success': True, 'message': 'Status updated'}), 200
@@ -293,7 +351,8 @@ def admin_update_status(current_user, order_id):
 
 @app.route('/api/contact', methods=['POST', 'OPTIONS'])
 def submit_contact():
-    if request.method == 'OPTIONS': return '', 200
+    if request.method == 'OPTIONS': 
+        return '', 200
     try:
         data = request.json
         conn = get_db()
@@ -308,21 +367,33 @@ def submit_contact():
 
 @app.route('/api/stats', methods=['GET', 'OPTIONS'])
 def get_stats():
-    if request.method == 'OPTIONS': return '', 200
+    if request.method == 'OPTIONS': 
+        return '', 200
     try:
         conn = get_db()
         cursor = conn.cursor()
         cursor.execute('SELECT COUNT(*) FROM bookings')
         total = cursor.fetchone()[0]
+        
+        thirty_days_ago = (datetime.now() - timedelta(days=30)).isoformat()
+        cursor.execute('SELECT COUNT(*) FROM bookings WHERE created_at >= ?', (thirty_days_ago,))
+        recent = cursor.fetchone()[0]
+        
         conn.close()
-        return jsonify({'success': True, 'total_bookings': total, 'base_customers': 2400 + total}), 200
+        return jsonify({
+            'success': True, 
+            'total_bookings': total, 
+            'recent_bookings': recent,
+            'base_customers': 2400 + total
+        }), 200
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# Initialize database when app starts
 init_db()
+
 if __name__ == '__main__':
-    
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 10000))
     print(f"\n🚀 TAILOREASE BACKEND RUNNING on port {port}")
     print("👤 Admin: admin / admin123")
     print("👤 User: testuser / user123\n")
