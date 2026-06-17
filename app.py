@@ -319,8 +319,9 @@ def get_stats():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+init_db()
 if __name__ == '__main__':
-    init_db()
+    
     port = int(os.environ.get('PORT', 5000))
     print(f"\n🚀 TAILOREASE BACKEND RUNNING on port {port}")
     print("👤 Admin: admin / admin123")
